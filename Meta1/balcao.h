@@ -29,7 +29,8 @@ typedef struct Utente utente, *utente_ptr;
 struct Utente{
 
 	user cliente;
-	medico medico_esp;
+	//medico medico_esp;
+	int flag_emConsulta;
 };
 
 

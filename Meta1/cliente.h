@@ -1,6 +1,9 @@
 #ifndef CLIENTE_H
 #define CLIENTE_H
 
+#define  BALCAO_FIFO "balcFifo"
+#define  UTENTE_FIFO "utenteFifo_%d"
+#define  MED_FIFO "medFifo_%d"
 
 #define TAM 40
 
@@ -13,6 +16,7 @@ struct User{
 	int prioridade_atr;
 	int numUtente_frente;
 	int user_id;
+	int pidMed_atr;
 };
 
 

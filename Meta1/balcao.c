@@ -1,7 +1,7 @@
 #include "balcao.h"
 
 
-int main(int argc,  char *argv[], char *envp[])
+int main(int argc, char *argv[], char *envp[])
 {
 	
 	int res, estadoFilho;
