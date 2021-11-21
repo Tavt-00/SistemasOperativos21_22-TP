@@ -3,10 +3,6 @@
 
 #include "cliente.h"
 
-#define  BALCAO_FIFO "balcFifo"
-#define  UTENTE_FIFO "utenteFifo_%d"
-#define  MED_FIFO "medFifo_%d"
-
 #define TAM 40
 
 

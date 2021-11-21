@@ -1,7 +1,6 @@
 #ifndef BALCAO_H
 #define BALCAO_H
  
-
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -18,11 +17,6 @@
 
 
 #define TAM 40
-
-
-#define  BALCAO_FIFO "balcFifo"
-#define  UTENTE_FIFO "utenteFifo_%d"
-#define  MED_FIFO "medFifo_%d"
 
 
 typedef struct Utente utente, *utente_ptr;
@@ -53,6 +47,29 @@ struct Balcao{
 	int max_medicos;
 };
 
+
+typedef struct balcaoMedico balcMed;
+struct balcaoMedico{
+	int pidMed;
+	char especialidade[50];
+	char nomeMed[50];
+	char mensagem[50];
+};
+
+
+typedef struct balcaoUtente balcUt;
+struct balcaoUtente{
+	int pidUt;
+	char nomeUt[50];
+	char mensagem[50];
+};
+
+
+typedef struct  utenteMedico utMed;
+struct utenteMedico{
+	int pid;	
+	char mensagem[50];
+};
 
 
 #endif
