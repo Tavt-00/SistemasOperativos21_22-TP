@@ -1,7 +1,6 @@
-#ifndef BALCAO_H
-#define BALCAO_H
+#ifndef UTIL_H
+#define UTIL_H
  
-
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -16,27 +15,15 @@
 #include "medico.h"
 #include <limits.h>
 
+#define  BALCAO_FIFO "balcFifo"
+#define  UTENTE_FIFO "utenteFifo_%d"
+#define  MED_FIFO "medFifo_%d"
 
 #define TAM 40
 
 
-typedef struct Utente utente, *utente_ptr;
-struct Utente{
 
-	user cliente;
-	//medico medico_esp;
-	int flag_emConsulta;
-};
-
-
-
-typedef struct Med med, *med_ptr;
-struct Med{
-
-	medico medico_esp;
-};
-
-
+//BALCAO
 typedef struct Balcao balcao, *balc_ptr;
 struct Balcao{
 
@@ -49,6 +36,8 @@ struct Balcao{
 };
 
 
+
+//COMUNICAÇÃO
 typedef struct balcaoMedico balcMed;
 struct balcaoMedico{
 	int pidMed;
@@ -73,4 +62,46 @@ struct utenteMedico{
 };
 
 
-#endif
+
+//MEDICO
+typedef struct Medico medico, *medico_ptr;
+struct Medico{
+
+	char nome[TAM];
+	char especialidade[TAM];
+	int med_id;
+	user_ptr cliente_atual;
+
+};
+
+
+typedef struct Med med, *med_ptr;
+struct Med{
+
+	medico medico_esp;
+	int flag_emConsulta;
+};
+
+
+//CLIENTE
+typedef struct User user, *user_ptr;
+struct User{
+
+	char nome[TAM];
+	char sintoma[TAM];
+	char espec_atr[TAM];
+	int prioridade_atr;
+	int numUtente_frente;
+	int user_id;
+	int pidMed_atr;
+};
+
+typedef struct Utente utente, *utente_ptr;
+struct Utente{
+
+	user cliente;
+	int flag_emConsulta;
+};
+
+
+#endif 
