@@ -1,12 +1,12 @@
 all: cliente balcao medico 
 
-cliente: cliente.c cliente.h
+cliente: cliente.c util.h
 	gcc -o cliente cliente.c 
 
-balcao: balcao.c balcao.h cliente.h medico.h
-	gcc -o balcao balcao.c 
+balcao: balcao.c util.h
+	gcc -lpthread -o balcao balcao.c 
 
-medico: medico.c medico.h cliente.h
+medico: medico.c util.h
 	gcc -o medico medico.c
 
 clean:

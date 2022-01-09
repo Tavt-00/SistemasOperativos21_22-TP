@@ -3,7 +3,8 @@
 
 int main(int argc, char *argv[])
 {
-	
+	setbuf(stdout,NUll);
+
 	medido med_dados;
 	cliente paci_dados;
 	int flagTerm = 0;
