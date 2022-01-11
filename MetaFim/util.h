@@ -14,9 +14,10 @@
 #include <limits.h>
 #include <pthread.h>
 
-#define  BALCAO_FIFO "balcFifo"
+#define  BALCAO_FIFO "balcFifoUt"		//mudar aqui tudo depois para BALCAO_FIFO1
+#define  BALCAO_FIFO2 "balcFifoMed"
 #define  UTENTE_FIFO "utenteFifo_%d"
-#define  MED_FIFO "medFifo_%d"
+#define  MEDICO_FIFO "medicoFifo_%d"
 
 #define TAM 40
 
@@ -26,25 +27,12 @@ typedef struct User user, *user_ptr;
 struct User{
 
 	int pidUt;
-	int flagContinua;
 	int flagSintoma;
+	int flagRegistado;
 	char nome[50];
 	char mensagem[50];
 	int prioridade_atr;
 	char espec_atr[50];
-};
-
-//CLIENTE
-typedef struct Usertemp usertemp, *user_ptrTemp;
-struct Usertemp{
-
-	char nome[TAM];
-	char sintoma[TAM];
-	char espec_atr[TAM];
-	int prioridade_atr;
-	int numUtente_frente;
-	int user_id;
-	int pidMed_atr;
 };
 
 
@@ -62,7 +50,9 @@ struct Medico{
 
 	char nome[TAM];
 	char especialidade[TAM];
+	char mensagem[50];
 	int med_id;
+	int flagRegistado;
 	user_ptr cliente_atual;
 
 };
@@ -76,7 +66,7 @@ struct Med{
 };
 
 
-//BALCAO
+//BALCAO -- TIRAR ISTO??????
 typedef struct Balcao balcao, *balc_ptr;
 struct Balcao{
 
@@ -93,24 +83,35 @@ struct Balcao{
 
 
 //COMUNICAÇÃO
-typedef struct balcaoMedico balcMed;
+typedef struct balcaoMedico balcMed, *balcMed_ptr;
 struct balcaoMedico{
-	int pidMed;
 	char especialidade[50];
 	char nomeMed[50];
 	char mensagem[50];
+
+	int flagContinua;
+	int pidMed;
+	int *numMed;
+	int maxMed;
+
+	pthread_mutex_t *trinco;
+
+	med_ptr array_medicos;
 };
 
 
-typedef struct balcaoUtente balcUt;
+typedef struct balcaoUtente balcUt, *balcUt_ptr;
 struct balcaoUtente{
-	int pidUt;
-	int flagContinua;
 	int flagSintoma;
 	char nomeUt[50];
 	char mensagem[50];
 	int prioridade_atr;
 	char espec_atr[50];
+
+	int flagContinua;
+	int pidUt;
+	int *numUt;
+	int maxUt;
 
 	utente_ptr array_utentes;
 
@@ -122,6 +123,18 @@ typedef struct  utenteMedico utMed;
 struct utenteMedico{
 	int pid;	
 	char mensagem[50];
+};
+
+
+typedef struct filasEspera filas, *filas_ptr;
+struct filasEspera{
+
+	utente_ptr oftalmologia[4];
+	utente_ptr neurologia[4];
+	utente_ptr estomatologia[4];
+	utente_ptr ortopedia[4];
+	utente_ptr geral [4];
+
 };
 
 
