@@ -1,32 +1,12 @@
 #include "util.h"
 
-
-//listar clientes
-void lista_cli(utente_ptr array_ut, int numUt){
-
-	printf("Existem %d utentes\n", numUt);
-
-	for(int i = 0; i< numUt; i++)
-		printf("Nome Utente: [%s] - ID Utente: [%d] - Espec atribuida: [%s] - Prioridade: [%d] \n", array_ut[i].cliente.nome, array_ut[i].cliente.pidUt, array_ut[i].cliente.espec_atr, array_ut[i].cliente.prioridade_atr);
-}
-
-
-//balcUtData.array_utentes, numUt, &indice, comando)
-int comandos_balc (utente_ptr array_ut, int numUt, int *indice, char *comando){
-
-
-	if(strcmp(comando, "utentes") == 0){
-		lista_cli(array_ut, numUt);
-		return 1;
-	}
-
-
-	return -1;
-}
+utente_ptr array_ut = NULL;
+med_ptr array_med = NULL;
+filas Filas;
 
 
 //alocar memória para novos utentes
-utente_ptr add_ut(int *numUt, utente_ptr array_ut, user_ptr novo){
+utente_ptr add_ut(int *numUt, user_ptr novo){
 
 	if(*numUt == 0){
 		array_ut = malloc(sizeof(utente));
@@ -50,20 +30,21 @@ utente_ptr add_ut(int *numUt, utente_ptr array_ut, user_ptr novo){
 
     //Copiar a informacao
 	strcpy(array_ut[*numUt].cliente.nome, novo->nome);
+	strcpy(array_ut[(*numUt)].cliente.espec_atr, novo->espec_atr);
 	array_ut[(*numUt)].cliente.pidUt = novo->pidUt; 
 	array_ut[(*numUt)].cliente.flagRegistado = 1; //balcao registou			
-	array_ut[(*numUt)].flag_emConsulta = 0;	//ainda não está em consulta
+	array_ut[(*numUt)].cliente.flagEmConsulta = 0;	//ainda não está em consulta
+	array_ut[(*numUt)].cliente.flagNaFila = 1; //se veio para aqui é porque esta na fila
 	array_ut[(*numUt)].cliente.prioridade_atr = novo->prioridade_atr;
-	strcpy(array_ut[(*numUt)].cliente.espec_atr, novo->espec_atr);
-
 
 	(*numUt)++;
+
 	return array_ut;
 }
 
 
 // adicionar medicos
-med_ptr add_med(int *numMed, med_ptr array_med, medico_ptr novo){
+med_ptr add_med(int *numMed, medico_ptr novo){
 
 	if(*numMed == 0){
 		array_med = malloc(sizeof(med));
@@ -88,71 +69,42 @@ med_ptr add_med(int *numMed, med_ptr array_med, medico_ptr novo){
 
     //Copiar a informacao
 	strcpy(array_med[*numMed].medico_esp.nome, novo->nome);
+	strcpy(array_med[*numMed].medico_esp.especialidade, novo->especialidade);
 	array_med[(*numMed)].medico_esp.med_id = novo->med_id; 
 	array_med[(*numMed)].medico_esp.flagRegistado = 1;
-	array_med[(*numMed)].flag_emConsulta = 0;	//ainda não está em consulta
+	array_med[(*numMed)].medico_esp.flagEmConsulta = 0;	//ainda não está em consulta
 
 	(*numMed)++;
 	return array_med;
 }
 
-//funcao para limpar todas as filas de espera
-filas_ptr limpa_filas(filas_ptr arrays_filas){
 
-	for(int i = 0; i < 5; i++){
-		arrays_filas->oftalmologia[i] = NULL;
-		arrays_filas->ortopedia[i] = NULL;
-		arrays_filas->neurologia[i] = NULL;
-		arrays_filas->estomatologia[i] = NULL;
-		arrays_filas->geral[i] = NULL;
-	}
-
-	return arrays_filas;
-}
-
-
-//funcao para adicionar utilizador na fila respetiva
-filas_ptr addUt_naFIla (filas_ptr arrays_filas, user_ptr utente){
-
-	int contaClis = 0;
-
-	//ver especialidade do utente
-	if(strcmp(utente->espec_atr, "oftalmologia") == 0){
-		
-		//ver qual é o tamanho atual da fila
-		//se houver espaço no array, ver prioridadees
-		//se a prioridade for maior que alguma, o user que está na fila passa a 1ª pos livre. o atual entre nessa
-		contaClis = 0;
-		for(int i = 0; i < 5; i++){
-			if(arrays_filas->oftalmologia[i] != NULL){
-				contaClis ++;
-			}
-		}
-
-		if(contaClis == 5)
-
-		
-	}
-
-}
-
-/*
 //remover cliente do array dinâmico
-utente_ptr remover_ut(int *numUt, utente_ptr array_ut, user_ptr old_user, int pos){
+utente_ptr remover_ut(int *numUt, int pid){
+
+	utente_ptr aux;
 
 	if(*numUt > 1){
 
-		if(pos != *numUt-1)
-			array_ut[pos] = array_ut[*numUt-1];
+		int i = 0;
 
-		array_ut aux;
-		aux = realloc(array_ut, sizeof(utente)*(numUt-1));
-		if(aux == NULL){
-			printf("[ERRO] na realocacao de memoria");
+		//encontrar o client a tirar e guardar posicao
+		while(array_ut[i].cliente.pidUt != pid){
+			i++;
+		}
+
+		if(i != *numUt-1)
+			array_ut[i] = array_ut[*numUt-1];
+
+		utente_ptr aux;
+		aux = realloc(array_ut, sizeof(utente)*(*numUt-1));
+		if (aux = NULL)
+		{
+			printf("[ERRO] Realocacao de memoria - func remover_ut\n");
 			free(aux);
 			return NULL;
 		}
-
+		
 		array_ut = aux;
 		(*numUt)--;
 
@@ -165,124 +117,847 @@ utente_ptr remover_ut(int *numUt, utente_ptr array_ut, user_ptr old_user, int po
 	}
 }
 
+void encerra_todos(int numMed, int numUt ){
+
+	char fifoMed[50], fifoCli[50];
+	int fd_cli, fd_med, auxPid;
+	medico med_dados;
+	user cli_dados;
+
+	//acabar com medicos
+	for(int i = 0; i < numMed; i++){
+		auxPid = array_med[i].medico_esp.med_id;
+
+		strcpy(array_med[i].medico_esp.mensagem, "ENCERRA");
+		sprintf(fifoMed, MEDICO_FIFO, auxPid);
+
+		fd_med = open(fifoMed, O_WRONLY);
+		write(fd_med, &array_med[i].medico_esp, sizeof(medico));
+		array_med[i].medico_esp.flagRegistado = 0;
+	}
+
+	//acabar com utentes
+	for(int i = 0; i < numUt; i++){
+		auxPid = array_ut[i].cliente.pidUt;
+
+		strcpy(array_ut[i].cliente.mensagem, "ENCERRA");
+		sprintf(fifoCli, UTENTE_FIFO, auxPid);
+
+		fd_cli = open(fifoCli, O_WRONLY);
+		write(fd_cli, &array_ut[i].cliente, sizeof(user));
+		array_ut->cliente.flagRegistado = 0;
+	}
+}
+
+// verificiar se é possível adicionar cliente na sua fila
+void check_filaOftal ( user novo, int *numUt , int *resultado){
+
+	//resultado: se -1 é porque não foi adicionado à fila de espera | >= 0 indica quantas pessoas tem à sua frente
+	int contaClis = 0, flagEncontrou = 0, fd_cli_fifo;
+	char nome_fifo_cli[30];
+
+	
+	//FILA OFTALMOLOGIA
+	if (strcmp(novo.espec_atr, "oftalmologia") == 0)
+	{
+		contaClis = 0;
+
+		for (int i = 0; i < 5; i++)
+		{
+			if (Filas.oftalmologia[i].flagNaFila != -1)
+				contaClis++;
+		}
+
+		//se fila vazia, meter logo na 1ª pos
+		if (contaClis == 0){
+			novo.flagNaFila = 1;
+			Filas.oftalmologia[0] = novo;
+			*resultado = 0;	//0 pessoas à frente
+		}
 
 
+		// se fila cheia
+		else if(contaClis == 5){
+			//ver se há alguém com prioridade menor
+			for (int i = 0; i < 5; i++)
+			{	
+				if (Filas.oftalmologia[i].prioridade_atr > novo.prioridade_atr)
+				{	//se encontrou, ver em que posição foi
+	
+					//se foi na ultima, só temos de mandar embora o ultimo, tirá-lo do array geral e colocar o novo na fila
+					if(i == 4){
+						sprintf(nome_fifo_cli, UTENTE_FIFO, Filas.oftalmologia[4].pidUt);
+						fd_cli_fifo = open(nome_fifo_cli, O_WRONLY);
+						if (fd_cli_fifo == -1)
+						{
+							printf("[ERRO] Abrir o fifo do cliente - func check_fila\n");
+							exit(2);
+						}
+						//avisar cliente que vai ser substituído
+						printf("Aqui1\n");
+						strcpy(Filas.oftalmologia[4].mensagem, "BALC_FILA_NOMORE_OK");
+						write(fd_cli_fifo, &Filas.oftalmologia[4], sizeof(user));
 
+						//tirar do array geral 
+						array_ut = remover_ut(numUt, Filas.oftalmologia[4].pidUt);
+
+						//colocar novo utente na fila e pos respetiva
+						novo.flagNaFila = 1;
+						Filas.oftalmologia[4] = novo;
+						flagEncontrou = 1;
+						*resultado = i; //i tb vai ser igual ao numero de utentes à frente pois começa em 0
+						break; 
+					}
+
+					//se não foi na última, por exemp i = 1
+					else{
+						int aux = 3;
+
+						//o ultimo vai ser sacrificado pois a fila esta cheia
+						sprintf(nome_fifo_cli, UTENTE_FIFO, Filas.oftalmologia[4].pidUt);
+						fd_cli_fifo = open(nome_fifo_cli, O_WRONLY);
+						if (fd_cli_fifo == -1)
+						{
+							printf("[ERRO2] Abrir o fifo do cliente - func check_fila\n");
+							exit(2);
+						}
+						strcpy(Filas.oftalmologia[4].mensagem, "BALC_FILA_NOMORE_OK");
+						write(fd_cli_fifo, &Filas.oftalmologia[4], sizeof(user));
+						array_ut = remover_ut(numUt, Filas.oftalmologia[4].pidUt);
+						
+						//andar todos com uma posição a partir do lugar encontrado
+						for (int j = aux; j >= i; j--)
+						{
+							Filas.oftalmologia[j+1] = Filas.oftalmologia[j];
+						}
+						
+						novo.flagNaFila = 1;
+						Filas.oftalmologia[i] = novo;
+						flagEncontrou = 1;
+						*resultado = i;
+						break;
+					}
+				}
+			}
+			//se não encontrou vaga
+			if (flagEncontrou == 0){
+				*resultado = -1; 
+			}	
+		}
+		//se ainda houver espaço na fila, só preciso de andar com os outros, meter o novo e não tirar ninguém
+		else if (contaClis > 0 && contaClis < 5) 
+		{
+			for (int i = 0; i < 5; i++)
+			{
+				if (Filas.oftalmologia[i].prioridade_atr > novo.prioridade_atr)
+				{
+					int aux = 4;
+					
+					//encontrar a 1ª pos ocupada a contar da dirt para esq
+					while (1)
+					{	
+						if (Filas.oftalmologia[aux].flagNaFila == -1)
+						{
+							aux--;
+						}
+						else
+							break;
+					}
+					//aux sai daqui com a pos certa onde é preciso começar a andar para a direita
+
+					for (int j = aux; j >= i; j--)
+					{
+						Filas.oftalmologia[j+1] = Filas.oftalmologia[j];
+					}
+					
+					novo.flagNaFila = 1;
+					Filas.oftalmologia[i] = novo;
+					flagEncontrou = 1;
+					*resultado = i;
+					break;
+				} 
+			}
+			//se não encontrou ninguém com prio menor, vai para a vaga disponível  
+			if (flagEncontrou == 0)
+			{
+				for (int i = 0; i < 5; i++)
+				{
+					if (Filas.oftalmologia[i].flagNaFila == -1){
+						novo.flagNaFila = 1;
+						Filas.oftalmologia[i] = novo;
+						*resultado = i;
+						break;
+					}	
+				}
+			}
+		}
+	}
+
+}
+
+void check_filaNeu (user novo, int *numUt, int *resultado){
+
+	int contaClis = 0, flagEncontrou = 0, fd_cli_fifo;
+	char nome_fifo_cli[30];
+
+	//FILA NEUROLOGIA
+	if (strcmp(novo.espec_atr, "neurologia") == 0)
+	{
+		contaClis = 0;
+
+		for (int i = 0; i < 5; i++)
+		{
+			if (Filas.neurologia[i].flagNaFila != -1)
+				contaClis++;
+		}
+
+		//se fila vazia, meter logo na 1ª pos
+		if (contaClis == 0){
+			novo.flagNaFila = 1;
+			Filas.neurologia[0] = novo;
+			*resultado = 0;	//0 pessoas à frente
+		}
+
+
+		// se fila cheia
+		else if(contaClis == 5){
+			//ver se há alguém com prioridade menor
+			for (int i = 0; i < 5; i++)
+			{	
+				if (Filas.neurologia[i].prioridade_atr > novo.prioridade_atr)
+				{	//se encontrou, ver em que posição foi
+	
+					//se foi na ultima, só temos de mandar embora o ultimo, tirá-lo do array geral e colocar o novo na fila
+					if(i == 4){
+						sprintf(nome_fifo_cli, UTENTE_FIFO, Filas.neurologia[4].pidUt);
+						fd_cli_fifo = open(nome_fifo_cli, O_WRONLY);
+						if (fd_cli_fifo == -1)
+						{
+							printf("[ERRO] Abrir o fifo do cliente - func check_fila\n");
+							exit(2);
+						}
+						//avisar cliente que vai ser substituído
+						printf("Aqui1\n");
+						strcpy(Filas.neurologia[4].mensagem, "BALC_FILA_NOMORE_OK");
+						write(fd_cli_fifo, &Filas.neurologia[4], sizeof(user));
+
+						//tirar do array geral 
+						array_ut = remover_ut(numUt, Filas.neurologia[4].pidUt);
+
+						//colocar novo utente na fila e pos respetiva
+						novo.flagNaFila = 1;
+						Filas.neurologia[4] = novo;
+						flagEncontrou = 1;
+						*resultado = i; //i tb vai ser igual ao numero de utentes à frente pois começa em 0
+						break; 
+					}
+
+					//se não foi na última, por exemp i = 1
+					else{
+						int aux = 3;
+
+						//o ultimo vai ser sacrificado pois a fila esta cheia
+						sprintf(nome_fifo_cli, UTENTE_FIFO, Filas.neurologia[4].pidUt);
+						fd_cli_fifo = open(nome_fifo_cli, O_WRONLY);
+						if (fd_cli_fifo == -1)
+						{
+							printf("[ERRO2] Abrir o fifo do cliente - func check_fila\n");
+							exit(2);
+						}
+						strcpy(Filas.neurologia[4].mensagem, "BALC_FILA_NOMORE_OK");
+						write(fd_cli_fifo, &Filas.neurologia[4], sizeof(user));
+						array_ut = remover_ut(numUt, Filas.neurologia[4].pidUt);
+						
+						//andar todos com uma posição a partir do lugar encontrado
+						for (int j = aux; j >= i; j--)
+						{
+							Filas.neurologia[j+1] = Filas.neurologia[j];
+						}
+						
+						novo.flagNaFila = 1;
+						Filas.neurologia[i] = novo;
+						flagEncontrou = 1;
+						*resultado = i;
+						break;
+					}
+				}
+			}
+			//se não encontrou vaga
+			if (flagEncontrou == 0){
+				*resultado = -1; 
+			}	
+		}
+		//se ainda houver espaço na fila, só preciso de andar com os outros, meter o novo e não tirar ninguém
+		else if (contaClis > 0 && contaClis < 5) 
+		{
+			for (int i = 0; i < 5; i++)
+			{
+				if (Filas.neurologia[i].prioridade_atr > novo.prioridade_atr)
+				{
+					int aux = 4;
+					
+					//encontrar a 1ª pos ocupada a contar da dirt para esq
+					while (1)
+					{	
+						if (Filas.neurologia[aux].flagNaFila == -1)
+						{
+							aux--;
+						}
+						else
+							break;
+					}
+					//aux sai daqui com a pos certa onde é preciso começar a andar para a direita
+
+					for (int j = aux; j >= i; j--)
+					{
+						Filas.neurologia[j+1] = Filas.neurologia[j];
+					}
+					
+					novo.flagNaFila = 1;
+					Filas.neurologia[i] = novo;
+					flagEncontrou = 1;
+					*resultado = i;
+					break;
+				} 
+			}
+			//se não encontrou ninguém com prio menor, vai para a vaga disponível  
+			if (flagEncontrou == 0)
+			{
+				for (int i = 0; i < 5; i++)
+				{
+					if (Filas.neurologia[i].flagNaFila == -1){
+						novo.flagNaFila = 1;
+						Filas.neurologia[i] = novo;
+						*resultado = i;
+						break;
+					}	
+				}
+			}
+		}
+	}
+
+}
+
+	
+void check_filaEsto (user novo, int *numUt , int *resultado){
+
+	int contaClis = 0, flagEncontrou = 0, fd_cli_fifo;
+	char nome_fifo_cli[30];
+
+
+	//FILA ESTOMATOLOGIA
+	if (strcmp(novo.espec_atr, "estomatologia") == 0)
+	{
+		contaClis = 0;
+
+		for (int i = 0; i < 5; i++)
+		{
+			if (Filas.estomatologia[i].flagNaFila != -1)
+				contaClis++;
+		}
+
+		//se fila vazia, meter logo na 1ª pos
+		if (contaClis == 0){
+			novo.flagNaFila = 1;
+			Filas.estomatologia[0] = novo;
+			*resultado = 0;	//0 pessoas à frente
+		}
+
+
+		// se fila cheia
+		else if(contaClis == 5){
+			//ver se há alguém com prioridade menor
+			for (int i = 0; i < 5; i++)
+			{	
+				if (Filas.estomatologia[i].prioridade_atr > novo.prioridade_atr)
+				{	//se encontrou, ver em que posição foi
+	
+					//se foi na ultima, só temos de mandar embora o ultimo, tirá-lo do array geral e colocar o novo na fila
+					if(i == 4){
+						sprintf(nome_fifo_cli, UTENTE_FIFO, Filas.estomatologia[4].pidUt);
+						fd_cli_fifo = open(nome_fifo_cli, O_WRONLY);
+						if (fd_cli_fifo == -1)
+						{
+							printf("[ERRO] Abrir o fifo do cliente - func check_fila\n");
+							exit(2);
+						}
+						//avisar cliente que vai ser substituído
+						printf("Aqui1\n");
+						strcpy(Filas.estomatologia[4].mensagem, "BALC_FILA_NOMORE_OK");
+						write(fd_cli_fifo, &Filas.estomatologia[4], sizeof(user));
+
+						//tirar do array geral 
+						array_ut = remover_ut(numUt, Filas.estomatologia[4].pidUt);
+
+						//colocar novo utente na fila e pos respetiva
+						novo.flagNaFila = 1;
+						Filas.estomatologia[4] = novo;
+						flagEncontrou = 1;
+						*resultado = i; //i tb vai ser igual ao numero de utentes à frente pois começa em 0
+						break; 
+					}
+
+					//se não foi na última, por exemp i = 1
+					else{
+						int aux = 3;
+
+						//o ultimo vai ser sacrificado pois a fila esta cheia
+						sprintf(nome_fifo_cli, UTENTE_FIFO, Filas.estomatologia[4].pidUt);
+						fd_cli_fifo = open(nome_fifo_cli, O_WRONLY);
+						if (fd_cli_fifo == -1)
+						{
+							printf("[ERRO2] Abrir o fifo do cliente - func check_fila\n");
+							exit(2);
+						}
+						strcpy(Filas.estomatologia[4].mensagem, "BALC_FILA_NOMORE_OK");
+						write(fd_cli_fifo, &Filas.estomatologia[4], sizeof(user));
+						array_ut = remover_ut(numUt, Filas.estomatologia[4].pidUt);
+						
+						//andar todos com uma posição a partir do lugar encontrado
+						for (int j = aux; j >= i; j--)
+						{
+							Filas.estomatologia[j+1] = Filas.estomatologia[j];
+						}
+						
+						novo.flagNaFila = 1;
+						Filas.estomatologia[i] = novo;
+						flagEncontrou = 1;
+						*resultado = i;
+						break;
+					}
+				}
+			}
+			//se não encontrou vaga
+			if (flagEncontrou == 0){
+				*resultado = -1; 
+			}	
+		}
+		//se ainda houver espaço na fila, só preciso de andar com os outros, meter o novo e não tirar ninguém
+		else if (contaClis > 0 && contaClis < 5) 
+		{
+			for (int i = 0; i < 5; i++)
+			{
+				if (Filas.estomatologia[i].prioridade_atr > novo.prioridade_atr)
+				{
+					int aux = 4;
+					
+					//encontrar a 1ª pos ocupada a contar da dirt para esq
+					while (1)
+					{	
+						if (Filas.estomatologia[aux].flagNaFila == -1)
+						{
+							aux--;
+						}
+						else
+							break;
+					}
+					//aux sai daqui com a pos certa onde é preciso começar a andar para a direita
+
+					for (int j = aux; j >= i; j--)
+					{
+						Filas.estomatologia[j+1] = Filas.estomatologia[j];
+					}
+					
+					novo.flagNaFila = 1;
+					Filas.estomatologia[i] = novo;
+					flagEncontrou = 1;
+					*resultado = i;
+					break;
+				} 
+			}
+			//se não encontrou ninguém com prio menor, vai para a vaga disponível  
+			if (flagEncontrou == 0)
+			{
+				for (int i = 0; i < 5; i++)
+				{
+					if (Filas.estomatologia[i].flagNaFila == -1){
+						novo.flagNaFila = 1;
+						Filas.estomatologia[i] = novo;
+						*resultado = i;
+						break;
+					}	
+				}
+			}
+		}
+	}
+
+}
+
+
+void check_filaOrto (user novo, int *numUt , int *resultado){
+
+	int contaClis = 0, flagEncontrou = 0, fd_cli_fifo;
+	char nome_fifo_cli[30];
+
+	//FILA ORTOPEDIA
+	if (strcmp(novo.espec_atr, "ortopedia") == 0)
+	{
+		contaClis = 0;
+
+		for (int i = 0; i < 5; i++)
+		{
+			if (Filas.ortopedia[i].flagNaFila != -1)
+				contaClis++;
+		}
+
+		//se fila vazia, meter logo na 1ª pos
+		if (contaClis == 0){
+			novo.flagNaFila = 1;
+			Filas.ortopedia[0] = novo;
+			*resultado = 0;	//0 pessoas à frente
+		}
+
+
+		// se fila cheia
+		else if(contaClis == 5){
+			//ver se há alguém com prioridade menor
+			for (int i = 0; i < 5; i++)
+			{	
+				if (Filas.ortopedia[i].prioridade_atr > novo.prioridade_atr)
+				{	//se encontrou, ver em que posição foi
+	
+					//se foi na ultima, só temos de mandar embora o ultimo, tirá-lo do array geral e colocar o novo na fila
+					if(i == 4){
+						sprintf(nome_fifo_cli, UTENTE_FIFO, Filas.ortopedia[4].pidUt);
+						fd_cli_fifo = open(nome_fifo_cli, O_WRONLY);
+						if (fd_cli_fifo == -1)
+						{
+							printf("[ERRO] Abrir o fifo do cliente - func check_fila\n");
+							exit(2);
+						}
+						//avisar cliente que vai ser substituído
+						printf("Aqui1\n");
+						strcpy(Filas.ortopedia[4].mensagem, "BALC_FILA_NOMORE_OK");
+						write(fd_cli_fifo, &Filas.ortopedia[4], sizeof(user));
+
+						//tirar do array geral 
+						array_ut = remover_ut(numUt, Filas.ortopedia[4].pidUt);
+
+						//colocar novo utente na fila e pos respetiva
+						novo.flagNaFila = 1;
+						Filas.ortopedia[4] = novo;
+						flagEncontrou = 1;
+						*resultado = i; //i tb vai ser igual ao numero de utentes à frente pois começa em 0
+						break; 
+					}
+
+					//se não foi na última, por exemp i = 1
+					else{
+						int aux = 3;
+
+						//o ultimo vai ser sacrificado pois a fila esta cheia
+						sprintf(nome_fifo_cli, UTENTE_FIFO, Filas.ortopedia[4].pidUt);
+						fd_cli_fifo = open(nome_fifo_cli, O_WRONLY);
+						if (fd_cli_fifo == -1)
+						{
+							printf("[ERRO2] Abrir o fifo do cliente - func check_fila\n");
+							exit(2);
+						}
+						strcpy(Filas.ortopedia[4].mensagem, "BALC_FILA_NOMORE_OK");
+						write(fd_cli_fifo, &Filas.ortopedia[4], sizeof(user));
+						array_ut = remover_ut(numUt, Filas.ortopedia[4].pidUt);
+						
+						//andar todos com uma posição a partir do lugar encontrado
+						for (int j = aux; j >= i; j--)
+						{
+							Filas.ortopedia[j+1] = Filas.ortopedia[j];
+						}
+						
+						novo.flagNaFila = 1;
+						Filas.ortopedia[i] = novo;
+						flagEncontrou = 1;
+						*resultado = i;
+						break;
+					}
+				}
+			}
+			//se não encontrou vaga
+			if (flagEncontrou == 0){
+				*resultado = -1; 
+			}	
+		}
+		//se ainda houver espaço na fila, só preciso de andar com os outros, meter o novo e não tirar ninguém
+		else if (contaClis > 0 && contaClis < 5) 
+		{
+			for (int i = 0; i < 5; i++)
+			{
+				if (Filas.ortopedia[i].prioridade_atr > novo.prioridade_atr)
+				{
+					int aux = 4;
+					
+					//encontrar a 1ª pos ocupada a contar da dirt para esq
+					while (1)
+					{	
+						if (Filas.ortopedia[aux].flagNaFila == -1)
+						{
+							aux--;
+						}
+						else
+							break;
+					}
+					//aux sai daqui com a pos certa onde é preciso começar a andar para a direita
+
+					for (int j = aux; j >= i; j--)
+					{
+						Filas.ortopedia[j+1] = Filas.ortopedia[j];
+					}
+					
+					novo.flagNaFila = 1;
+					Filas.ortopedia[i] = novo;
+					flagEncontrou = 1;
+					*resultado = i;
+					break;
+				} 
+			}
+			//se não encontrou ninguém com prio menor, vai para a vaga disponível  
+			if (flagEncontrou == 0)
+			{
+				for (int i = 0; i < 5; i++)
+				{
+					if (Filas.ortopedia[i].flagNaFila == -1){
+						novo.flagNaFila = 1;
+						Filas.ortopedia[i] = novo;
+						*resultado = i;
+						break;
+					}	
+				}
+			}
+		}
+	}
+}
+
+
+void check_filaGe (user novo, int *numUt , int *resultado){
+
+	int contaClis = 0, flagEncontrou = 0, fd_cli_fifo;
+	char nome_fifo_cli[30];
+
+	//FILA GERAL
+	if (strcmp(novo.espec_atr, "geral") == 0)
+	{
+		contaClis = 0;
+
+		for (int i = 0; i < 5; i++)
+		{
+			if (Filas.geral[i].flagNaFila != -1)
+				contaClis++;
+		}
+
+		//se fila vazia, meter logo na 1ª pos
+		if (contaClis == 0){
+			novo.flagNaFila = 1;
+			Filas.geral[0] = novo;
+			*resultado = 0;	//0 pessoas à frente
+		}
+
+
+		// se fila cheia
+		else if(contaClis == 5){
+			//ver se há alguém com prioridade menor
+			for (int i = 0; i < 5; i++)
+			{	
+				if (Filas.geral[i].prioridade_atr > novo.prioridade_atr)
+				{	//se encontrou, ver em que posição foi
+	
+					//se foi na ultima, só temos de mandar embora o ultimo, tirá-lo do array geral e colocar o novo na fila
+					if(i == 4){
+						sprintf(nome_fifo_cli, UTENTE_FIFO, Filas.geral[4].pidUt);
+						fd_cli_fifo = open(nome_fifo_cli, O_WRONLY);
+						if (fd_cli_fifo == -1)
+						{
+							printf("[ERRO] Abrir o fifo do cliente - func check_fila\n");
+							exit(2);
+						}
+						//avisar cliente que vai ser substituído
+						printf("Aqui1\n");
+						strcpy(Filas.geral[4].mensagem, "BALC_FILA_NOMORE_OK");
+						write(fd_cli_fifo, &Filas.geral[4], sizeof(user));
+
+						//tirar do array geral 
+						array_ut = remover_ut(numUt, Filas.geral[4].pidUt);
+
+						//colocar novo utente na fila e pos respetiva
+						novo.flagNaFila = 1;
+						Filas.geral[4] = novo;
+						flagEncontrou = 1;
+						*resultado = i; //i tb vai ser igual ao numero de utentes à frente pois começa em 0
+						break; 
+					}
+
+					//se não foi na última, por exemp i = 1
+					else{
+						int aux = 3;
+
+						//o ultimo vai ser sacrificado pois a fila esta cheia
+						sprintf(nome_fifo_cli, UTENTE_FIFO, Filas.geral[4].pidUt);
+						fd_cli_fifo = open(nome_fifo_cli, O_WRONLY);
+						if (fd_cli_fifo == -1)
+						{
+							printf("[ERRO2] Abrir o fifo do cliente - func check_fila\n");
+							exit(2);
+						}
+						strcpy(Filas.geral[4].mensagem, "BALC_FILA_NOMORE_OK");
+						write(fd_cli_fifo, &Filas.geral[4], sizeof(user));
+						array_ut = remover_ut(numUt, Filas.geral[4].pidUt);
+						
+						//andar todos com uma posição a partir do lugar encontrado
+						for (int j = aux; j >= i; j--)
+						{
+							Filas.geral[j+1] = Filas.geral[j];
+						}
+						
+						novo.flagNaFila = 1;
+						Filas.geral[i] = novo;
+						flagEncontrou = 1;
+						*resultado = i;
+						break;
+					}
+				}
+			}
+			//se não encontrou vaga
+			if (flagEncontrou == 0){
+				*resultado = -1; 
+			}	
+		}
+		//se ainda houver espaço na fila, só preciso de andar com os outros, meter o novo e não tirar ninguém
+		else if (contaClis > 0 && contaClis < 5) 
+		{
+			for (int i = 0; i < 5; i++)
+			{
+				if (Filas.geral[i].prioridade_atr > novo.prioridade_atr)
+				{
+					int aux = 4;
+					
+					//encontrar a 1ª pos ocupada a contar da dirt para esq
+					while (1)
+					{	
+						if (Filas.geral[aux].flagNaFila == -1)
+						{
+							aux--;
+						}
+						else
+							break;
+					}
+					//aux sai daqui com a pos certa onde é preciso começar a andar para a direita
+
+					for (int j = aux; j >= i; j--)
+					{
+						Filas.geral[j+1] = Filas.geral[j];
+					}
+					
+					novo.flagNaFila = 1;
+					Filas.geral[i] = novo;
+					flagEncontrou = 1;
+					*resultado = i;
+					break;
+				} 
+			}
+			//se não encontrou ninguém com prio menor, vai para a vaga disponível  
+			if (flagEncontrou == 0)
+			{
+				for (int i = 0; i < 5; i++)
+				{
+					if (Filas.geral[i].flagNaFila == -1){
+						novo.flagNaFila = 1;
+						Filas.geral[i] = novo;
+						*resultado = i;
+						break;
+					}	
+				}
+			}
+		}
+	}
+
+}
+
+
+//listar todos os clientes, atendidos e em fila
+void listaUtentes(utente_ptr array_ut, int numUt){
+
+	printf("\n______Existem %d utentes no total______\n\n", numUt);
+
+	for(int i = 0; i< numUt; i++){
+		printf("\nNome Utente: [%s] - ID Utente: [%d] - Espec atribuida: [%s] - Prioridade: [%d] \n", array_ut[i].cliente.nome, array_ut[i].cliente.pidUt, array_ut[i].cliente.espec_atr, array_ut[i].cliente.prioridade_atr);
+		if (array_ut[i].cliente.flagEmConsulta == 0)
+			printf("O utente ainda se encontra na fila de espera.\n");
+		else if(array_ut[i].cliente.flagEmConsulta == 1)
+			printf("O utente encontra-se a ser atendido pelo especilialista: %s.\n", array_ut[i].cliente.medico_atr);
+		
+	}
+
+}
 
 //listar medicos
-void lista_cli(med_ptr array_med, int numMed){
+void lista_med(med_ptr array_med, int numMed){
 
-	printf("Existem %d medicos\n", numUt);
+	printf("\n_____Existem %d medicos no total_____\n", numMed);
 
-	for(int i = 0; i< numUt; i++)
+	for(int i = 0; i< numMed; i++){
 		printf("Nome Medico: [%s] - ID Medico: [%d] - Especialidade: [%s]\n", array_med[i].medico_esp.nome, array_med[i].medico_esp.med_id, array_med[i].medico_esp.especialidade);
+		if(array_med[i].medico_esp.flagEmConsulta == 0)
+			printf("O medico ainda nao esta em consulta com ninguem\n");
+		else if(array_med[i].medico_esp.flagEmConsulta == 1)
+			printf("O medico esta a consultar o utente %s.\n", array_med[i].medico_esp.cliente_atual.nome);
+	}
 }
 
 
 
 
 //remover medicos 
-med_ptr remover_med(int *numMed, med_ptr array_med, int pos){
+med_ptr remover_med(int *numMed, int pid){
+
+
+	med_ptr aux;
 
 	if(*numMed > 1){
 
-		if(pos != *numMed-1)
-			array_med[pos] = array_med[*numMed-1];
+		int i = 0;
 
-		array_med aux;
-		aux = realloc(array_med, sizeof(medico)*(numMed-1));
-		if(aux == NULL){
-			printf("[ERRO] na realocacao de memoria");
+		//encontrar o client a tirar e guardar posicao
+		while(array_med[i].medico_esp.med_id != pid){
+			i++;
+		}
+
+		if(i != *numMed-1)
+			array_med[i] = array_med[*numMed-1];
+
+		med_ptr aux;
+		aux = realloc(array_med, sizeof(med)*(*numMed-1));
+		if (aux = NULL)
+		{
+			printf("[ERRO] Realocacao de memoria - func remover_ut\n");
 			free(aux);
 			return NULL;
 		}
-
+		
 		array_med = aux;
 		(*numMed)--;
 
-		return array_ut;
+		return array_med;
 	}	
 	else if (*numMed == 1){
-		free (array_med);
+		free (array_ut);
 		*numMed = 0;
 		return NULL;
 	}
-}
-
-
-//avanca fila 
-void avancaFila(utente_ptr array_ut, med_ptr array_med, int numUt, int numMed, char *espec ){
-
-	balcMed balcMedAux;
-	balcUt balcUtAux;
-
-
-	for(int i = 0; i < numUt; i++){
-
-		if(array_ut[i].flag_emConsulta == 0 && strcmp(array_ut[i].cliente.espec_atr, espec)){
-			if(array_ut[i].cliente.numUtente_frente > 0) {
-				array_ut[i].cliente.numUtente_frente--;
-			}
-			else if(array_ut[i].cliente.numUtente_frente==0){ //se for o proximo a ser atendido
-
-				for (int j = 0; j < numMed ; ++i){
-					
-					//procurar medico livre 
-					//se nao tiver em consulta e for da especialidade pretendida
-					if(array_med[i].flag_emConsulta == 0 && strcmp(array_med[i].medico_esp.especialidade, espec)){
-
-						//associar o medico atribuido ao cliente e vice-versa (se interessar saber isso no balcao)
-						//array_med[i].medico_esp.cliente_atual = array_ut[i].cliente;
-
-						//mandar informações do medico para o utente
-						int cli_pid = array_ut[i].client.user_id;
-						char cli_fifo[40];
-						sprintf(cli_fifo,UTENTE_FIFO,cli_pid);
-						int fd_cli_fifo = open(cli_fifo,O_WRONLY);
-
-						//preencher a estrutura balcUt com informações do medico
-						balcUtAux.pid_med_atr = array_med[i].med_id;	//falta adicionar na struct
-						write(fd_cli_fifo, &balcUtAux, sizeof(balcUt));
-
-						//mandar informações do utente para o medico
-						int med_pid = array_med[i].med_esp.user_id;
-						char med_fifo[40];
-						sprintf(med_fifo,MED_FIFO,med_pid);
-						int fd_med_fifo = open(med_fifo,O_WRONLY);
-
-						//preencher a estrutura balcMed com informações do cliente
-						balcMedAux.info_ut_atr = array_ut[i].cliente;	//falta adicionar na struct
-						write(fd_med_fifo, &balcMedAux, sizeof(balcMed));
-
-
-						close(fd_client_fifo);
-						close(fd_med_fifo);
-					}
-				
-				}
-
-			}
-
-		}
-		
-	}
 
 }
 
-*/
+
 
 void *threadClassCli(void *dados)
 {
 	balcUt *balcUtData = (balcUt *)dados;
 
-	int res, prioLida, estadoFilho, x;
+	int res, prioLida, estadoFilho, x, res_checkFilas = -2;
 	int fd_cli_fifo, fd_balc_fifo, res_size;
 	int balClass[2], classBalc[2];
 	char class_info[256], especLida[30], fimClass[5] = "#fim\n";
 	char nome_fifo_cli[30];
 
 
-	utente_ptr auxUtente_ptr = balcUtData->array_utentes;
+	utente_ptr auxUtente = NULL;
 	user cli_dados;
 
 
@@ -331,7 +1006,7 @@ void *threadClassCli(void *dados)
 		res_size = read(fd_balc_fifo, &cli_dados, sizeof(user));
 		if (res_size != sizeof(user))
 		{
-			printf("[ERRO] Ler do fifo balcao\n");
+			printf("[ERRO] Ler do fifo balcao - utente\n");
 			exit(3);
 		}
 		if(!balcUtData->flagContinua)
@@ -342,7 +1017,6 @@ void *threadClassCli(void *dados)
 			//se o cliente ainda não está registado, registar e falar com o classificador
 		if (cli_dados.flagRegistado == 0)	
 		{
-
 			//verificar MAXCLI e guardar cliente no array
 			if ((*balcUtData->numUt) < balcUtData->maxUt)
 			{				
@@ -367,25 +1041,47 @@ void *threadClassCli(void *dados)
 				}
 				class_info[x] = '\0';
 				sscanf(class_info, "%s %d", cli_dados.espec_atr, &cli_dados.prioridade_atr);
+				res_checkFilas = -2;
 
-				strcpy(cli_dados.mensagem, "BALC");
+				if(strcmp(cli_dados.espec_atr, "oftalmologia") == 0){
+					check_filaOftal(cli_dados, balcUtData->numUt, &res_checkFilas);
+				}
+				else if(strcmp(cli_dados.espec_atr, "neurologia") == 0){
+					check_filaNeu(cli_dados, balcUtData->numUt, &res_checkFilas);
+				}
+				else if(strcmp(cli_dados.espec_atr, "estomatologia") == 0){
+					check_filaEsto(cli_dados, balcUtData->numUt, &res_checkFilas);
+				}
+				else if(strcmp(cli_dados.espec_atr, "ortopedia") == 0){
+					check_filaOrto(cli_dados, balcUtData->numUt, &res_checkFilas);
+				}
+				else if(strcmp(cli_dados.espec_atr, "geral") == 0){
+					check_filaGe(cli_dados, balcUtData->numUt, &res_checkFilas);
+				}
 
-				//guardar novo cliente e os seus dados
-				auxUtente_ptr == add_ut(balcUtData->numUt, balcUtData->array_utentes, &cli_dados);
-				balcUtData->array_utentes = auxUtente_ptr;
+				//não deu para adicionar na fila
+				if(res_checkFilas == -1){
+					strcpy(cli_dados.mensagem, "BALC_FILA_NO_OK");
+					printf("\nO cliente %s nao conseguiu ser registado.\n", cli_dados.nome);
+				}
+				//se deu para por na fila, por também no array geral
+				else if(res_checkFilas >= 0){
+					strcpy(cli_dados.mensagem, "BALC_FILA_OK");
+					cli_dados.numUtFrente = res_checkFilas;
 
-				//por na fila respetiva
-
+					auxUtente = add_ut(balcUtData->numUt, &cli_dados);
+					array_ut = auxUtente;
+					
+					printf("\nO cliente %s foi registado.\n", cli_dados.nome);
+				}			
+				
 				//responder ao cliente
 				write(fd_cli_fifo, &cli_dados, sizeof(user));
-				printf("O cliente %s foi registado.\n", cli_dados.nome);
-				printf("Especialidade atribuida: %s. Prioridade atribuida: %d\n", cli_dados.espec_atr, cli_dados.prioridade_atr);
 			}
 			else
 			{	
 				//avisar cliente que está no maximo de clientes
 				strcpy(cli_dados.mensagem, "MAXCLI");
-
 				sprintf(nome_fifo_cli, UTENTE_FIFO, cli_dados.pidUt);
 				fd_cli_fifo = open(nome_fifo_cli, O_WRONLY);
 				if (fd_cli_fifo == -1)
@@ -398,7 +1094,19 @@ void *threadClassCli(void *dados)
 		}
 		else{
 			//aqui deve ser para ler os comandos do cliente
-			printf("BOas\n");
+			if(strcmp(cli_dados.mensagem, "ADEUS")){
+				int aux = cli_dados.pidUt;
+
+				for(int i = 0; i < *balcUtData->numUt; i++){
+					if(array_ut[i].cliente.pidUt == aux){
+						array_ut[i].cliente.flagEmConsulta = 0;
+					}
+				}
+			}
+			else if(strcmp(cli_dados.mensagem, "SAIR")){
+				int aux = cli_dados.pidUt;
+				array_med = remover_med(balcUtData->numUt, aux);
+			}
 		}
 		
 		pthread_mutex_unlock(balcUtData->trinco);
@@ -422,7 +1130,7 @@ void *threadMedico(void *dados)		//med_ptr -> utente_ptr
 
 	balcMed *balcMedData = (balcMed *) dados;
 
-	med_ptr auxMed_ptr = balcMedData->array_medicos;
+	med_ptr auxMed = NULL;
 	medico med_dados;
 
 	//tratar fifo balcao
@@ -440,11 +1148,10 @@ void *threadMedico(void *dados)		//med_ptr -> utente_ptr
 		res_size = read (fd_balc_fifo2, &med_dados, sizeof(medico));
 		if (res_size != sizeof(medico))
 		{
-			printf("[ERRO] Ler do fifo balcao\n");
+			printf("[ERRO] Ler do fifo balcao - medico\n");
 			exit(3);
 		}
 		
-		printf("Medico %s, espe %s", med_dados.nome, med_dados.especialidade);
 
 		if(!balcMedData->flagContinua)
 			break;
@@ -461,20 +1168,17 @@ void *threadMedico(void *dados)		//med_ptr -> utente_ptr
 				fd_med_fifo = open(nome_fifo_med, O_WRONLY);
 				if (fd_med_fifo == -1)
 				{
-					printf("[ERRO] Abrir o fifo do medico\n");
+					printf("[ERRO] Abrir o fifo do balc para o medico\n");
 					exit(2);
 				}
-				printf("1\n");
-				strcpy(med_dados.mensagem, "BALC");
-				printf("2\n");
 
 				//guardar o novo medico e responder
-				auxMed_ptr == add_med(balcMedData->numMed, balcMedData->array_medicos, &med_dados);
-				balcMedData->array_medicos = auxMed_ptr;
-				printf("3\n");
+				auxMed = add_med(balcMedData->numMed, &med_dados);
+				array_med = auxMed;
 
+				printf("\nMedico %s, espe %s\n", med_dados.nome, med_dados.especialidade);
+				strcpy(med_dados.mensagem, "BALC_OK");
 				write(fd_med_fifo, &med_dados, sizeof(medico));
-				printf("4\n");
 
 			}
 			else{
@@ -485,22 +1189,109 @@ void *threadMedico(void *dados)		//med_ptr -> utente_ptr
 				fd_med_fifo = open(nome_fifo_med, O_WRONLY);
 				if (fd_med_fifo == -1)
 				{
-					printf("[ERRO] Abrir o fifo do balc para o cliente\n");
+					printf("[ERRO] Abrir o fifo do balc para o medico\n");
 					exit(2);
 				}
-				write(fd_med_fifo, &med_dados, sizeof(user));
+				write(fd_med_fifo, &med_dados, sizeof(medico));
 			}
 			
 		}
 		else{
 			//aqui deve ser para ler os comandos do medico
-			printf("BOas\n");
+			if(strcmp(med_dados.mensagem, "ADEUS")){
+				int aux = med_dados.med_id;
+
+				for(int i = 0; i < *balcMedData->numMed; i++){
+					if(array_med[i].medico_esp.med_id == aux){
+						array_med[i].medico_esp.flagEmConsulta = 0;
+					}
+				}
+			}
+			else if(strcmp(med_dados.mensagem, "SAIR")){
+				int aux = med_dados.med_id;
+				array_med = remover_med(balcMedData->numMed, aux);
+			}
 		}
 
 		pthread_mutex_unlock(balcMedData->trinco);
 	}
 
 	printf("FUIMEDICO\n");
+	pthread_exit(NULL);
+
+}
+
+//procurar medicos
+void *threadProcMed(void *dados)		
+{
+	int fd_med_fifo;
+	char nome_fifo_med[30];
+	
+	procuraMed *procuraMedData = (procuraMed *) dados;
+	medico med_dados;
+
+	sleep(7);
+
+	while (procuraMedData->flagContinua)
+	{
+		sleep(2);
+		for(int i = 0; i < *procuraMedData->numMed; i++ ){
+
+			pthread_mutex_lock(procuraMedData->trinco);
+
+			if (array_med[i].medico_esp.flagEmConsulta == 0)	
+			{
+				if (strcmp(array_med[i].medico_esp.especialidade, "oftalmologia") == 0 && Filas.oftalmologia[0].flagNaFila != -1)
+				{
+					int auxPid = 0;
+
+					med_dados.cliente_atual = Filas.oftalmologia[0];
+
+					sprintf(nome_fifo_med, MEDICO_FIFO, array_med[i].medico_esp.med_id);
+					fd_med_fifo = open(nome_fifo_med, O_WRONLY);
+					if (fd_med_fifo == -1)
+					{
+						printf("[ERRO] Abrir o fifo do balc para o cliente\n");
+						exit(2);
+					}
+					strcpy(med_dados.mensagem, "RECEBE_DADOS_CONS");
+					write(fd_med_fifo, &med_dados, sizeof(medico));
+
+					array_med[i].medico_esp.flagEmConsulta = 1;
+					auxPid = Filas.oftalmologia[0].pidUt;
+					
+					//encontrar o pid do cliente da fila mas no array geral para meter a flag a 1
+					for(int j = 0; j < *procuraMedData->numUt; j++){
+
+						if (array_ut[j].cliente.pidUt == auxPid)
+						{
+							array_ut[j].cliente.flagEmConsulta = 1;
+							strcpy(array_ut[j].cliente.medico_atr, array_med[i].medico_esp.nome);
+							break;
+						}
+					}
+
+					//AQUI TENHO DE REORDENAR O ARRAY DAS FILAS, TIRANDO O PRIMEIRO QUE JÁ ESTÁ A SER ATENDIDO
+
+				}
+				else if(strcmp(array_med[i].medico_esp.especialidade, "neurologia") == 0){
+					printf("ok\n");
+				}
+				else if(strcmp(array_med[i].medico_esp.especialidade, "estomatologia") == 0){
+					printf("ok\n");
+				}
+				else if(strcmp(array_med[i].medico_esp.especialidade, "ortopedia") == 0){
+					printf("ok\n");
+				}
+				else if(strcmp(array_med[i].medico_esp.especialidade, "geral") == 0){
+					printf("ok\n");
+				}
+			}
+			pthread_mutex_unlock(procuraMedData->trinco);	
+		}
+	}
+	
+
 	pthread_exit(NULL);
 
 }
@@ -518,15 +1309,16 @@ int main(int argc, char *argv[], char *envp[])
 	int max_clientes, max_medicos;
 	int numUt = 0, numMed = 0, indice;
 
-	utente_ptr array_ut = NULL; //ponteiro para array de clientes
+
 	balcUt balcUtData;
 
-	med_ptr array_med = NULL;
 	balcMed balcMedData;
 
+	procuraMed procuraMedData;
 
 	pthread_t thread_classCli;
 	pthread_t thread_med;
+	pthread_t thread_procMed;
 	pthread_mutex_t trinco;
 
 	//criar fifo balcao-cliente e balcao-medico
@@ -580,26 +1372,47 @@ int main(int argc, char *argv[], char *envp[])
 		exit(2);
 	}
 
-	//preencher estrutruras das threads
+	
 	pthread_mutex_init(&trinco, NULL);
+
+
+	//iniciar estrutura das filas	
+	for(int i = 0; i < 5; i++){
+		Filas.oftalmologia[i].flagNaFila = -1;
+		Filas.ortopedia[i].flagNaFila = -1;
+		Filas.neurologia[i].flagNaFila = -1;
+		Filas.estomatologia[i].flagNaFila = -1;
+		Filas.geral[i].flagNaFila = -1;
+	}
+
 
 	balcUtData.flagContinua = 1;
 	balcUtData.trinco = &trinco;
 	balcUtData.maxUt = max_clientes;
 	balcUtData.numUt = &numUt;
-	balcUtData.array_utentes = array_ut;
+
 
 	balcMedData.flagContinua = 1;
 	balcMedData.trinco = &trinco;
 	balcMedData.maxMed = max_medicos;
 	balcMedData.numMed = &numMed;
-	balcMedData.array_medicos = array_med;
+
+
+	procuraMedData.trinco = &trinco;
+	procuraMedData.flagContinua = 1;
+	procuraMedData.numMed = &numMed;
+	procuraMedData.numUt = &numUt;
+
 
 	//thread para ouvir cliente
 	pthread_create(&thread_classCli, NULL, threadClassCli, (void *) &balcUtData);
 	
 	//thread para ouvir medico
 	pthread_create(&thread_med, NULL, threadMedico, (void*) &balcMedData);
+
+	//thread para procurar medico livre
+	pthread_create(&thread_procMed, NULL, threadProcMed, (void*) &procuraMedData);
+
 
 	while (1)
 	{
@@ -608,6 +1421,7 @@ int main(int argc, char *argv[], char *envp[])
 
 		if (strcmp(comando, "encerra\n") == 0)
 		{ 	
+
 			//parar thread balcao-cliente
 			pthread_mutex_lock(balcUtData.trinco);
 			balcUtData.flagContinua = 0;
@@ -618,28 +1432,39 @@ int main(int argc, char *argv[], char *envp[])
 			balcMedData.flagContinua = 0;
 			pthread_mutex_unlock(balcMedData.trinco);
 
+			//parar thread procura medico
+			pthread_mutex_lock(procuraMedData.trinco);
+			procuraMedData.flagContinua = 0;
+			pthread_mutex_unlock(procuraMedData.trinco);
+
 			//desbloquear read
 			write(fd_balc_fifo, &(sendExit), sizeof(char));
 			write(fd_balc_fifo2, &(sendExit), sizeof(char));
 
-			printf("[AVISO] Classificador a terminar...\n");
-			flag_fimClass = 1;
+			encerra_todos(numMed, numUt);
+
+			
 			break;
 		}
-		
-		int op = comandos_balc(balcUtData.array_utentes, numUt, &indice, comando);
-
-		if (op == 1);
-		else if(op == 2){
-			printf("em processamento..\n");
+		else if(strcmp(comando, "utentes\n") == 0){
+			printf("\n[A Listar utentes em fila de espera e a serem atendidos]\n");
+			listaUtentes(array_ut, numUt);
 		}
-
+		else if(strcmp(comando, "especialistas\n") == 0){
+			printf("\n[A listar todos os especialistas]\n");
+			lista_med(array_med, numMed);
+		}
+		else{
+			printf("Comando nao existe!\n");
+		}
 	}
 
+	printf("[AVISO] Classificador a terminar...\n");
 	printf("[AVISO] Balcao a encerrar...\n");
 
 	pthread_join(thread_classCli, NULL);	
 	pthread_join(thread_med, NULL);
+	pthread_join(thread_procMed, NULL);
 
 	pthread_mutex_destroy(&trinco);
 

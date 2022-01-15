@@ -19,6 +19,9 @@
 #define  UTENTE_FIFO "utenteFifo_%d"
 #define  MEDICO_FIFO "medicoFifo_%d"
 
+
+
+
 #define TAM 40
 
 
@@ -27,12 +30,19 @@ typedef struct User user, *user_ptr;
 struct User{
 
 	int pidUt;
-	int flagSintoma;
+	int flagNaFila;
 	int flagRegistado;
+	int flagEmConsulta;
+	int prioridade_atr;
+	int numUtFrente;
+	int pid_medAtr;
+	int flagInicioCons;
+	
 	char nome[50];
 	char mensagem[50];
-	int prioridade_atr;
+	char chat[50];
 	char espec_atr[50];
+	char medico_atr[50];
 };
 
 
@@ -40,7 +50,6 @@ typedef struct Utente utente, *utente_ptr;
 struct Utente{
 
 	user cliente;
-	int flag_emConsulta;
 };
 
 
@@ -48,12 +57,14 @@ struct Utente{
 typedef struct Medico medico, *medico_ptr;
 struct Medico{
 
-	char nome[TAM];
-	char especialidade[TAM];
+	char nome[50];
+	char especialidade[50];
 	char mensagem[50];
+	char chat[50];
 	int med_id;
 	int flagRegistado;
-	user_ptr cliente_atual;
+	int flagEmConsulta;
+	user cliente_atual;
 
 };
 
@@ -62,60 +73,6 @@ typedef struct Med med, *med_ptr;
 struct Med{
 
 	medico medico_esp;
-	int flag_emConsulta;
-};
-
-
-//BALCAO -- TIRAR ISTO??????
-typedef struct Balcao balcao, *balc_ptr;
-struct Balcao{
-
-	utente_ptr array_utentes;
-	med_ptr array_medicos;
-	int *numMed_atual;
-	int *numUten_atual;
-	int max_utentes;
-	int max_medicos;
-};
-
-
-
-
-
-//COMUNICAÇÃO
-typedef struct balcaoMedico balcMed, *balcMed_ptr;
-struct balcaoMedico{
-	char especialidade[50];
-	char nomeMed[50];
-	char mensagem[50];
-
-	int flagContinua;
-	int pidMed;
-	int *numMed;
-	int maxMed;
-
-	pthread_mutex_t *trinco;
-
-	med_ptr array_medicos;
-};
-
-
-typedef struct balcaoUtente balcUt, *balcUt_ptr;
-struct balcaoUtente{
-	int flagSintoma;
-	char nomeUt[50];
-	char mensagem[50];
-	int prioridade_atr;
-	char espec_atr[50];
-
-	int flagContinua;
-	int pidUt;
-	int *numUt;
-	int maxUt;
-
-	utente_ptr array_utentes;
-
-	pthread_mutex_t *trinco;
 };
 
 
@@ -129,13 +86,69 @@ struct utenteMedico{
 typedef struct filasEspera filas, *filas_ptr;
 struct filasEspera{
 
-	utente_ptr oftalmologia[4];
-	utente_ptr neurologia[4];
-	utente_ptr estomatologia[4];
-	utente_ptr ortopedia[4];
-	utente_ptr geral [4];
+	user oftalmologia[5];
+	user neurologia[5];
+	user estomatologia[5];
+	user ortopedia[5];
+	user geral [5];
 
 };
+
+
+typedef struct utentesAtendidos utAtend, *utAtend_ptr;
+struct utentesAtendidos{
+
+	utente_ptr array_utAtendidos; //aray dos utentes a serem atendidos
+
+};
+
+
+//COMUNICAÇÃO
+typedef struct balcaoUtente balcUt, *balcUt_ptr;
+struct balcaoUtente{
+	int flagSintoma;
+	char nomeUt[50];
+	char mensagem[50];
+	int prioridade_atr;
+	char espec_atr[50];
+
+	int flagContinua;
+	int pidUt;
+	int *numUt;
+	int maxUt;
+
+
+	pthread_mutex_t *trinco;
+};
+
+
+typedef struct balcaoMedico balcMed, *balcMed_ptr;
+struct balcaoMedico{
+	char especialidade[50];
+	char nomeMed[50];
+	char mensagem[50];
+
+	int flagContinua;
+	int pidMed;
+	int *numMed;
+	int maxMed;
+	
+	
+	pthread_mutex_t *trinco;
+};
+
+
+//para a thread que procura no array dos medicos algum livre 
+typedef struct procuraMedico procuraMed, *procuraMed_ptr;
+struct procuraMedico{
+	
+	int flagContinua;
+	int *numMed;
+	int *numUt;
+	
+	pthread_mutex_t *trinco;
+};
+
 
 
 #endif 
