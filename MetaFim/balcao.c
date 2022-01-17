@@ -1396,8 +1396,12 @@ void *threadFreqN(void *dados){
 
 	while (freqData->flagContinua)
 	{
+		lista_filas();
+		if(freqData->flagContinua)
+			break;
+		
 		sleep(freqData->segundos);
-		lista_filas();	
+			
 	}
 
 	pthread_exit(NULL);
@@ -1462,8 +1466,9 @@ void *threadClassCli(void *dados)
 
 		//le sintomas do cliente
 		res_size = read(fd_balc_fifo, &cli_dados, sizeof(user));
-		if (res_size != sizeof(user))
+		if (res_size == -1)
 		{
+			printf("[ERRO] A ler entre o balcao e cliente\n");
 			exit(3);
 		}
 		if(!balcUtData->flagContinua)
@@ -1597,8 +1602,9 @@ void *threadMedico(void *dados)
 		
 		//ler dados do medico
 		res_size = read (fd_balc_fifo2, &med_dados, sizeof(medico));
-		if (res_size != sizeof(medico))
+		if (res_size == -1)
 		{
+			printf("[ERRO] A ler entre o balcao e medico\n");
 			exit(3);
 		}
 		
@@ -2071,9 +2077,11 @@ int main(int argc, char *argv[], char *envp[])
 	pthread_join(thread_procMed, NULL);
 	pthread_join(thread_freqN, NULL);
 
+	unlink(BALCAO_FIFO);
+	unlink(BALCAO_FIFO2);
+
 	pthread_mutex_destroy(&trinco);
 
-	unlink(BALCAO_FIFO);
 
 	exit(0);
 }

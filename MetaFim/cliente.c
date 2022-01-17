@@ -20,7 +20,7 @@ int main(int argc, char *argv[])
 
 
 	//vê argumentos
-	if (argc < 2)
+	if (argc < 2 && argc > 3)
 	{
 		printf("[ERRO] Parametros em falta! \n");
 		exit(1);
