@@ -1653,13 +1653,18 @@ void *threadMedico(void *dados)
 
 				for(int i = 0; i < *balcMedData->numMed; i++){
 					if(array_med[i].medico_esp.med_id == aux){
+						printf("\n[AVISO] A consulta entre o utente %s e o especialista %s terminou!\n\n", array_med[i].medico_esp.cliente_atual.nome, array_med[i].medico_esp.nome);
 						array_med[i].medico_esp.flagEmConsulta = 0;
+						break;
 					}
 				}
+
+
 			}
 			else if(strcmp(med_dados.mensagem, "SAIR") == 0){
 				int aux = med_dados.med_id;
 				array_med = remover_med(balcMedData->numMed, aux);
+				printf("\n[AVISO] O medico %s saiu!\n\n", med_dados.nome);
 			}
 		}
 
@@ -1683,7 +1688,7 @@ void *threadProcMed(void *dados)
 
 	while (procuraMedData->flagContinua)
 	{
-		sleep(2);
+		sleep(5);
 		for(int i = 0; i < *procuraMedData->numMed; i++ ){
 
 			pthread_mutex_lock(procuraMedData->trinco);
@@ -1725,16 +1730,134 @@ void *threadProcMed(void *dados)
 				
 				}
 				else if(strcmp(array_med[i].medico_esp.especialidade, "neurologia") == 0 && Filas.neurologia[0].flagNaFila != -1){
-					printf("ok\n");
+					int auxPid = 0;
+
+					med_dados.cliente_atual = Filas.neurologia[0];
+
+					sprintf(nome_fifo_med, MEDICO_FIFO, array_med[i].medico_esp.med_id);
+					fd_med_fifo = open(nome_fifo_med, O_WRONLY);
+					if (fd_med_fifo == -1)
+					{
+						printf("[ERRO] Abrir o fifo do balc para o cliente\n");
+						exit(2);
+					}
+					strcpy(med_dados.mensagem, "RECEBE_DADOS_CONS");
+					write(fd_med_fifo, &med_dados, sizeof(medico));
+
+					array_med[i].medico_esp.flagEmConsulta = 1;
+					array_med[i].medico_esp.cliente_atual = Filas.neurologia[0];
+					auxPid = Filas.neurologia[0].pidUt;
+					
+					for(int j = 0; j < *procuraMedData->numUt; j++){
+
+						if (array_ut[j].cliente.pidUt == auxPid)
+						{
+							array_ut[j].cliente.flagEmConsulta = 1;
+							array_ut[j].cliente.flagNaFila = -1;
+							strcpy(array_ut[j].cliente.medico_atr, array_med[i].medico_esp.nome);
+							break;
+						}
+					}
+					arranja_filas(auxPid, "neurologia");
 				}
 				else if(strcmp(array_med[i].medico_esp.especialidade, "estomatologia") == 0 && Filas.estomatologia[0].flagNaFila != -1){
-					printf("ok\n");
+					
+					int auxPid = 0;
+
+					med_dados.cliente_atual = Filas.estomatologia[0];
+
+					sprintf(nome_fifo_med, MEDICO_FIFO, array_med[i].medico_esp.med_id);
+					fd_med_fifo = open(nome_fifo_med, O_WRONLY);
+					if (fd_med_fifo == -1)
+					{
+						printf("[ERRO] Abrir o fifo do balc para o cliente\n");
+						exit(2);
+					}
+					strcpy(med_dados.mensagem, "RECEBE_DADOS_CONS");
+					write(fd_med_fifo, &med_dados, sizeof(medico));
+
+					array_med[i].medico_esp.flagEmConsulta = 1;
+					array_med[i].medico_esp.cliente_atual = Filas.estomatologia[0];
+					auxPid = Filas.estomatologia[0].pidUt;
+					
+					for(int j = 0; j < *procuraMedData->numUt; j++){
+
+						if (array_ut[j].cliente.pidUt == auxPid)
+						{
+							array_ut[j].cliente.flagEmConsulta = 1;
+							array_ut[j].cliente.flagNaFila = -1;
+							strcpy(array_ut[j].cliente.medico_atr, array_med[i].medico_esp.nome);
+							break;
+						}
+					}
+					arranja_filas(auxPid, "estomatologia");
+				
 				}
 				else if(strcmp(array_med[i].medico_esp.especialidade, "ortopedia") == 0 && Filas.ortopedia[0].flagNaFila != -1){
-					printf("ok\n");
+					
+					int auxPid = 0;
+
+					med_dados.cliente_atual = Filas.ortopedia[0];
+
+					sprintf(nome_fifo_med, MEDICO_FIFO, array_med[i].medico_esp.med_id);
+					fd_med_fifo = open(nome_fifo_med, O_WRONLY);
+					if (fd_med_fifo == -1)
+					{
+						printf("[ERRO] Abrir o fifo do balc para o cliente\n");
+						exit(2);
+					}
+					strcpy(med_dados.mensagem, "RECEBE_DADOS_CONS");
+					write(fd_med_fifo, &med_dados, sizeof(medico));
+
+					array_med[i].medico_esp.flagEmConsulta = 1;
+					array_med[i].medico_esp.cliente_atual = Filas.ortopedia[0];
+					auxPid = Filas.ortopedia[0].pidUt;
+					
+					for(int j = 0; j < *procuraMedData->numUt; j++){
+
+						if (array_ut[j].cliente.pidUt == auxPid)
+						{
+							array_ut[j].cliente.flagEmConsulta = 1;
+							array_ut[j].cliente.flagNaFila = -1;
+							strcpy(array_ut[j].cliente.medico_atr, array_med[i].medico_esp.nome);
+							break;
+						}
+					}
+					arranja_filas(auxPid, "ortopedia");
+				
 				}
 				else if(strcmp(array_med[i].medico_esp.especialidade, "geral") == 0 && Filas.geral[0].flagNaFila != -1){
-					printf("ok\n");
+					
+					int auxPid = 0;
+
+					med_dados.cliente_atual = Filas.geral[0];
+
+					sprintf(nome_fifo_med, MEDICO_FIFO, array_med[i].medico_esp.med_id);
+					fd_med_fifo = open(nome_fifo_med, O_WRONLY);
+					if (fd_med_fifo == -1)
+					{
+						printf("[ERRO] Abrir o fifo do balc para o cliente\n");
+						exit(2);
+					}
+					strcpy(med_dados.mensagem, "RECEBE_DADOS_CONS");
+					write(fd_med_fifo, &med_dados, sizeof(medico));
+
+					array_med[i].medico_esp.flagEmConsulta = 1;
+					array_med[i].medico_esp.cliente_atual = Filas.geral[0];
+					auxPid = Filas.geral[0].pidUt;
+					
+					//encontrar o pid do cliente da fila mas no array geral para meter a flag a 1
+					for(int j = 0; j < *procuraMedData->numUt; j++){
+
+						if (array_ut[j].cliente.pidUt == auxPid)
+						{
+							array_ut[j].cliente.flagEmConsulta = 1;
+							array_ut[j].cliente.flagNaFila = -1;
+							strcpy(array_ut[j].cliente.medico_atr, array_med[i].medico_esp.nome);
+							break;
+						}
+					}
+					arranja_filas(auxPid, "geral");
 				}
 			}
 			pthread_mutex_unlock(procuraMedData->trinco);	
@@ -1853,7 +1976,7 @@ int main(int argc, char *argv[], char *envp[])
 	procuraMedData.numMed = &numMed;
 	procuraMedData.numUt = &numUt;
 
-	freqData.segundos = 5;
+	freqData.segundos = 30;
 	freqData.flagContinua = 1;
 	freqData.trinco = &trinco;
 

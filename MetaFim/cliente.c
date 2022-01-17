@@ -10,7 +10,7 @@ int main(int argc, char *argv[])
 	char nome_fifo_cli[30], nome_fifo_medic[30];
 	int flagConsulta = 0, flagFase = 0, recebeuMedico = 0; //para saber quem está a mandar mensagem
 	int res_size, response_select, pid;
-	char comando[30], especialidade[30];
+	char comando[30], especialidade[30], nome[30];
 
 	fd_set fds;
 	struct timeval tempo;
@@ -37,7 +37,8 @@ int main(int argc, char *argv[])
 	cli_dados.flagRegistado = 0;
 
 	//guardar nome e criar fifo fo utente
-	strcpy(cli_dados.nome, argv[1]);
+	strcpy(nome, argv[1]);
+	strcpy(cli_dados.nome, nome);
 	sprintf(nome_fifo_cli, UTENTE_FIFO, cli_dados.pidUt);
 
 	//ver se já existe fifo do cliente, senao cria

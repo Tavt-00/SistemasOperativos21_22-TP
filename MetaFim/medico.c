@@ -18,9 +18,14 @@ int main(int argc, char *argv[])
 	user cli_dados;
 
 
-	if (argc < 2)
+	if (argc < 2 && argc > 3 )
 	{
-		printf("[ERRO] Parametros em falta\n");
+		printf("[ERRO] Parametros incorretos!\n");
+		exit(1);
+	}
+
+	if(strcmp(argv[2], "oftalmologia") != 0 && strcmp(argv[2], "neurologia") != 0 && strcmp(argv[2], "estomatologia") != 0 && strcmp(argv[2], "ortopedia") != 0 && strcmp(argv[2], "geral") != 0){
+		printf("[ERRO] A especialidade introduzida nao existe!\n");
 		exit(1);
 	}
 
@@ -127,7 +132,7 @@ int main(int argc, char *argv[])
 				strcpy(med_dados.mensagem, "ADEUS");
 				med_dados.flagRegistado = 1;
 				med_dados.med_id = pid;
-				
+
 				write(fd_balc_fifo, &med_dados, sizeof(medico));
 			}
 		}
@@ -154,6 +159,7 @@ int main(int argc, char *argv[])
 				strcpy(med_dados.mensagem, "SAIR");
 				med_dados.med_id = pid;
 				med_dados.flagRegistado = -1;
+				strcpy(med_dados.nome, nome);
 				write(fd_balc_fifo, &med_dados, sizeof(medico));
 				break;
 			}
