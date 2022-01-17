@@ -20,8 +20,6 @@
 #define  MEDICO_FIFO "medicoFifo_%d"
 
 
-
-
 #define TAM 40
 
 
@@ -76,13 +74,7 @@ struct Med{
 };
 
 
-typedef struct  utenteMedico utMed;
-struct utenteMedico{
-	int pid;	
-	char mensagem[50];
-};
-
-
+//filas de espera
 typedef struct filasEspera filas, *filas_ptr;
 struct filasEspera{
 
@@ -95,15 +87,8 @@ struct filasEspera{
 };
 
 
-typedef struct utentesAtendidos utAtend, *utAtend_ptr;
-struct utentesAtendidos{
 
-	utente_ptr array_utAtendidos; //aray dos utentes a serem atendidos
-
-};
-
-
-//COMUNICAÇÃO
+//thread balcao, classificador, utente
 typedef struct balcaoUtente balcUt, *balcUt_ptr;
 struct balcaoUtente{
 	int flagSintoma;
@@ -122,6 +107,7 @@ struct balcaoUtente{
 };
 
 
+//thread balcao, medico
 typedef struct balcaoMedico balcMed, *balcMed_ptr;
 struct balcaoMedico{
 	char especialidade[50];
@@ -138,7 +124,7 @@ struct balcaoMedico{
 };
 
 
-//para a thread que procura no array dos medicos algum livre 
+//thread que procura no array dos medicos algum livre 
 typedef struct procuraMedico procuraMed, *procuraMed_ptr;
 struct procuraMedico{
 	
@@ -149,6 +135,14 @@ struct procuraMedico{
 	pthread_mutex_t *trinco;
 };
 
-
+//comando do Freq N
+typedef struct freq freqN, *freqN_ptr;
+struct freq{
+	
+	int segundos;
+	int flagContinua;
+	
+	pthread_mutex_t *trinco;
+};
 
 #endif 

@@ -10,7 +10,7 @@ int main(int argc, char *argv[])
 	char nome_fifo_cli[30], nome_fifo_medic[30];
 	int flagConsulta = 0, flagFase = 0, recebeuMedico = 0; //para saber quem está a mandar mensagem
 	int res_size, response_select, pid;
-	char comando[30];
+	char comando[30], especialidade[30];
 
 	fd_set fds;
 	struct timeval tempo;
@@ -107,6 +107,7 @@ int main(int argc, char *argv[])
 			{ 
 				printf("\nFoi registado e adicionado na fila com sucesso! Tem %d utentes na sua frente. Aguarde pelo medico...\n", cli_dados.numUtFrente);
 				printf("Especialidade atribuida: %s. Prioridade igual a: %d\n", cli_dados.espec_atr, cli_dados.prioridade_atr);
+				strcpy(especialidade , cli_dados.espec_atr);
 			}
 			else if (strcmp(cli_dados.mensagem, "BALC_FILA_NO_OK") == 0){
 				printf("A fila da sua especialidade [%s] esta cheia, dado a sua prioridade [%d] nao ha mais espaco.\n",cli_dados.espec_atr, cli_dados.prioridade_atr);
@@ -118,12 +119,16 @@ int main(int argc, char *argv[])
 				printf("Vai ser retirado da fila. Volte mais tarde.\n");
 				break;
 			}
+			else if (strcmp(cli_dados.mensagem, "DELEUT") == 0)	//esta a falar com o balcao
+			{ 
+				printf("\n\n[AVISO] Foi removido pelo balcao\n");
+				break;
+			}
 			else if (strcmp(cli_dados.mensagem, "INICIO_CONS") == 0)	//esta a falar com o medico
 			{
 				recebeuMedico = 1;
 
 				sprintf(nome_fifo_medic, MEDICO_FIFO, cli_dados.pid_medAtr);
-				printf("pid medico: %d\n", cli_dados.pid_medAtr);
 				fd_medic_fifo = open(nome_fifo_medic, O_WRONLY);
 				if (fd_medic_fifo == -1)
 				{
@@ -132,16 +137,23 @@ int main(int argc, char *argv[])
 					exit(2);
 				}
 
-				printf("\n__Atencao, o medico %s vai falar consigo__\n", cli_dados.medico_atr);
+				printf("\n[AVISO] Atencao, o medico %s vai falar consigo\n", cli_dados.medico_atr);
 				printf("Pode comecar a falar com o medico\n");
 				printf("\n-Medico: %s\n", cli_dados.chat);
-			
+
 			}
 			else if (strcmp(cli_dados.mensagem, "CONSULTA") == 0){
 				printf("\n-Medico: %s\n", cli_dados.chat);
 			}
 			else if (strcmp(cli_dados.mensagem, "ADEUS") == 0){
-				printf("O seu medico decidiu encerrar a consulta. O programa vai encerrar.\n");
+				
+				printf("\n[AVISO] O seu medico decidiu encerrar a consulta. O programa vai encerrar.\n");
+				
+				strcpy(cli_dados.mensagem, "ADEUS");
+				cli_dados.flagRegistado = -1;
+				cli_dados.pidUt = pid;
+				
+				write(fd_balc_fifo, &cli_dados, sizeof(user));
 				break;
 			}
 		}
@@ -156,14 +168,21 @@ int main(int argc, char *argv[])
 
 				strcpy(cli_dados.mensagem, "ADEUS");
 				cli_dados.pidUt = pid;
+				cli_dados.flagRegistado = -1;
+				strcpy(cli_dados.espec_atr, especialidade); 
 				write(fd_balc_fifo, &cli_dados, sizeof(user));
 				break;
 			}	
-			else if(strcmp(comando, "sair\n") == 0){
+			else if(strcmp(comando, "sair\n") == 0 && recebeuMedico == 0){
 				strcpy(cli_dados.mensagem, "SAIR");
+				cli_dados.flagRegistado = -1;
 				cli_dados.pidUt = pid;
+				strcpy(cli_dados.espec_atr, especialidade); 
 				write(fd_balc_fifo, &cli_dados, sizeof(user));
 				break;
+			}
+			else if(strcmp(comando, "sair\n") == 0 && recebeuMedico == 1){
+				printf("\n[AVISO] Atencao, encontra-se numa consulta! Para sair escreva o comando 'adeus'.\n\n");
 			}
 			else if(recebeuMedico == 1){
 				
@@ -177,7 +196,7 @@ int main(int argc, char *argv[])
 
 	//avisar balcao que vai sair
 
-	printf("[AVISO] Cliente a encerrar...\n");
+	printf("\n[AVISO] Cliente a encerrar...\n");
 
 	close(fd_cli_fifo);
 	close(fd_balc_fifo);

@@ -80,31 +80,30 @@ int main(int argc, char *argv[])
 				printf("[ERRO] Ler do fifo medico\n");
 				exit(3);
 			}
-
-			if (res_size != sizeof(medico))
-			{
-				printf("[ERRO] Ler no fifo do cliente\n");
-				exit(3);
-			}
 			if (strcmp(med_dados.mensagem, "ENCERRA") == 0)
 			{ 
 				printf("[AVISO] O balcao encerrou!\n");
 				break;
 			}
 			else if(strcmp(med_dados.mensagem, "MAXMED") == 0){
-				printf("Maximo de medicos foi atingido, tente mais tarde\n");
+				printf("[AVISO] Maximo de medicos foi atingido, tente mais tarde\n");
 				break;
 			}
 			else if (strcmp(med_dados.mensagem, "BALC_OK") == 0)	//esta a falar com o balcao
 			{ 
 				printf("Registado pelo balcao, aguarde...\n");
 			}
+			else if (strcmp(med_dados.mensagem, "DELESP") == 0)	//esta a falar com o balcao
+			{ 
+				printf("\n\n[AVISO] Foi removido pelo balcao\n");
+				break;
+			}
 			else if (strcmp(med_dados.mensagem, "RECEBE_DADOS_CONS") == 0)	//
 			{
 				recebeuDadosCli = 1;
 
-				printf("\n__Atencao, o utente %s ira ser-lhe atribuido__\n", med_dados.cliente_atual.nome);
-				printf("Pode comecar a falar com o utente\n");
+				printf("\n[AVISO] O utente %s ira ser-lhe atribuido\n", med_dados.cliente_atual.nome);
+				printf("Pode comecar a falar com o utente\n\n");
 
 				sprintf(nome_fifo_cli, UTENTE_FIFO, med_dados.cliente_atual.pidUt);
 				fd_cli_fifo = open(nome_fifo_cli, O_WRONLY);
@@ -121,15 +120,22 @@ int main(int argc, char *argv[])
 				printf("\n-Utente: %s\n", med_dados.chat);
 			}
 			else if (strcmp(med_dados.mensagem, "ADEUS") == 0){
-				printf("O seu utente decidiu encerrar a consulta\n");
+				printf("\n[AVISO] O seu utente decidiu encerrar a consulta!\n\n");
 				
+				recebeuDadosCli = 0;
+
+				strcpy(med_dados.mensagem, "ADEUS");
+				med_dados.flagRegistado = 1;
+				med_dados.med_id = pid;
+				
+				write(fd_balc_fifo, &med_dados, sizeof(medico));
 			}
 		}
 		else if (response_select > 0 && FD_ISSET(0, &fds))	//ler do teclado
 		{
 			fgets(comando, sizeof(comando), stdin);
 
-			if(strcmp(comando, "adeus\n") == 0){
+			if(strcmp(comando, "adeus\n") == 0 && recebeuDadosCli == 1){
 				strcpy(cli_dados.mensagem, "ADEUS");
 				write(fd_cli_fifo, &cli_dados, sizeof(user));
 				primeiraVez = 0;
@@ -138,14 +144,24 @@ int main(int argc, char *argv[])
 				//avisar balcao
 				strcpy(med_dados.mensagem, "ADEUS");
 				med_dados.med_id = pid;
+				med_dados.flagRegistado = 1;
 				write(fd_balc_fifo, &med_dados, sizeof(medico));
 			}	
-			else if(strcmp(comando, "sair\n") == 0){
+			else if(strcmp(comando, "adeus\n") == 0 && recebeuDadosCli == 0){
+				printf("[AVISO] Nao se encontra em consulta para usar este comando!\n");
+			}
+			else if(strcmp(comando, "sair\n") == 0 && recebeuDadosCli == 0){
 				strcpy(med_dados.mensagem, "SAIR");
 				med_dados.med_id = pid;
+				med_dados.flagRegistado = -1;
 				write(fd_balc_fifo, &med_dados, sizeof(medico));
 				break;
 			}
+			else if (strcmp(comando, "sair\n") == 0 && recebeuDadosCli == 1)
+			{
+				printf("\n[AVISO] Nao pode sair a meio da consulta! Acabe-a primeiro, com o comando 'adeus' e depois o 'sair'.\n\n");
+			}
+			
 			else if(recebeuDadosCli == 1){
 				if (!primeiraVez)
 				{
@@ -162,10 +178,8 @@ int main(int argc, char *argv[])
 					strcpy(cli_dados.chat, comando);
 					strcpy(cli_dados.mensagem, "CONSULTA");
 					write(fd_cli_fifo, &cli_dados, sizeof(user));
-
 				}	
 			}	
-			
 		}
 	}
 	

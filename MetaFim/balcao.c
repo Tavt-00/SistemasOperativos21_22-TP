@@ -98,7 +98,7 @@ utente_ptr remover_ut(int *numUt, int pid){
 
 		utente_ptr aux;
 		aux = realloc(array_ut, sizeof(utente)*(*numUt-1));
-		if (aux = NULL)
+		if (aux == NULL)
 		{
 			printf("[ERRO] Realocacao de memoria - func remover_ut\n");
 			free(aux);
@@ -292,8 +292,8 @@ void check_filaOftal ( user novo, int *numUt , int *resultado){
 			}
 		}
 	}
-
 }
+
 
 void check_filaNeu (user novo, int *numUt, int *resultado){
 
@@ -435,7 +435,6 @@ void check_filaNeu (user novo, int *numUt, int *resultado){
 			}
 		}
 	}
-
 }
 
 	
@@ -580,7 +579,6 @@ void check_filaEsto (user novo, int *numUt , int *resultado){
 			}
 		}
 	}
-
 }
 
 
@@ -871,29 +869,269 @@ void check_filaGe (user novo, int *numUt , int *resultado){
 }
 
 
+void arranja_filas (int pid, char espec[20]){
+
+
+	if(strcmp(espec, "oftalmologia") == 0){
+
+		int contaClis = 0, pos = -1, i;
+
+		//procurar pelo pid a tirar e guardar posição
+		for(i = 0; i<5; i++){
+			if(Filas.oftalmologia[i].flagNaFila == 1){
+				if(Filas.oftalmologia[i].pidUt == pid){
+					pos = i;
+				}
+			}
+		}
+		int aux = pos + 1;
+		
+		//ver ocupação da fila
+		for(int i = 0; i<5; i++){
+			if(Filas.oftalmologia[i].flagNaFila == 1){
+				contaClis++;
+			}
+		}
+
+		if(contaClis == 5){
+			for(int j = aux; j < 5; j++){
+				Filas.oftalmologia[j-1] = Filas.oftalmologia[j];
+			}
+
+			//se a fila está cheia, vai ser a última posição que fica livre
+			Filas.oftalmologia[4].flagNaFila = -1;
+		}
+		else if(contaClis > 1 && contaClis < 5){
+			int limpa = contaClis - 1; 
+
+			for(int j = aux; j <= limpa; j++){
+				Filas.oftalmologia[j-1] = Filas.oftalmologia[j];
+			}
+
+			//limpar a posição que deve ficar livre
+			Filas.oftalmologia[limpa].flagNaFila = -1;
+		}
+		
+		//se só houver um na fila, so é preciso tirar esse
+		else if(contaClis == 1){
+			Filas.oftalmologia[0].flagNaFila = -1;
+		}
+	}
+
+	if(strcmp(espec, "neurologia") == 0){
+
+		int contaClis = 0, pos = -1, i;
+
+		//procurar pelo pid a tirar e guardar posição
+		for(i = 0; i<5; i++){
+			if(Filas.neurologia[i].flagNaFila == 1){
+				if(Filas.neurologia[i].pidUt == pid){
+					pos = i;
+				}
+			}
+		}
+		int aux = i + 1;
+		
+		//ver ocupação da fila
+		for(int i = 0; i<5; i++){
+			if(Filas.neurologia[i].flagNaFila == 1){
+				contaClis++;
+			}
+		}
+
+		if(contaClis == 5){
+			for(int j = aux; j < 5; j++){
+				Filas.neurologia[j] = Filas.neurologia[j-1];
+			}
+
+			//se a fila está cheia, vai ser a última posição que fica livre
+			Filas.neurologia[4].flagNaFila = -1;
+		}
+		else if(contaClis > 1 && contaClis < 5){
+			int limpa = contaClis - 1; 
+
+			for(int j = aux; j <= limpa; j++){
+				Filas.neurologia[j] = Filas.neurologia[j-1];
+			}
+
+			//limpar a posição que deve ficar livre
+			Filas.neurologia[limpa].flagNaFila = -1;
+		}
+		
+		//se só houver um na fila, so é preciso tirar esse
+		else if(contaClis == 1){
+			Filas.neurologia[0].flagNaFila = -1;
+		}
+	}
+
+
+	if(strcmp(espec, "estomalogia") == 0){
+
+		int contaClis = 0, pos = -1, i;
+
+		//procurar pelo pid a tirar e guardar posição
+		for(i = 0; i<5; i++){
+			if(Filas.estomatologia[i].flagNaFila == 1){
+				if(Filas.estomatologia[i].pidUt == pid){
+					pos = i;
+				}
+			}
+		}
+		int aux = i + 1;
+		
+		//ver ocupação da fila
+		for(int i = 0; i<5; i++){
+			if(Filas.estomatologia[i].flagNaFila == 1){
+				contaClis++;
+			}
+		}
+
+		if(contaClis == 5){
+			for(int j = aux; j < 5; j++){
+				Filas.estomatologia[j] = Filas.estomatologia[j-1];
+			}
+
+			//se a fila está cheia, vai ser a última posição que fica livre
+			Filas.estomatologia[4].flagNaFila = -1;
+		}
+		else if(contaClis > 1 && contaClis < 5){
+			int limpa = contaClis - 1; 
+
+			for(int j = aux; j <= limpa; j++){
+				Filas.estomatologia[j] = Filas.estomatologia[j-1];
+			}
+
+			//limpar a posição que deve ficar livre
+			Filas.estomatologia[limpa].flagNaFila = -1;
+		}
+		
+		//se só houver um na fila, so é preciso tirar esse
+		else if(contaClis == 1){
+			Filas.estomatologia[0].flagNaFila = -1;
+		}
+	}
+
+
+	if(strcmp(espec, "ortopedia") == 0){
+
+		int contaClis = 0, pos = -1, i;
+
+		//procurar pelo pid a tirar e guardar posição
+		for(i = 0; i<5; i++){
+			if(Filas.ortopedia[i].flagNaFila == 1){
+				if(Filas.ortopedia[i].pidUt == pid){
+					pos = i;
+				}
+			}
+		}
+		int aux = i + 1;
+		
+		//ver ocupação da fila
+		for(int i = 0; i<5; i++){
+			if(Filas.ortopedia[i].flagNaFila == 1){
+				contaClis++;
+			}
+		}
+
+		if(contaClis == 5){
+			for(int j = aux; j < 5; j++){
+				Filas.ortopedia[j] = Filas.ortopedia[j-1];
+			}
+
+			//se a fila está cheia, vai ser a última posição que fica livre
+			Filas.ortopedia[4].flagNaFila = -1;
+		}
+		else if(contaClis > 1 && contaClis < 5){
+			int limpa = contaClis - 1; 
+
+			for(int j = aux; j <= limpa; j++){
+				Filas.ortopedia[j] = Filas.ortopedia[j-1];
+			}
+
+			//limpar a posição que deve ficar livre
+			Filas.ortopedia[limpa].flagNaFila = -1;
+		}
+		
+		//se só houver um na fila, so é preciso tirar esse
+		else if(contaClis == 1){
+			Filas.ortopedia[0].flagNaFila = -1;
+		}
+	}
+
+	if(strcmp(espec, "geral") == 0){
+
+		int contaClis = 0, pos = -1, i;
+
+		//procurar pelo pid a tirar e guardar posição
+		for(i = 0; i<5; i++){
+			if(Filas.geral[i].flagNaFila == 1){
+				if(Filas.geral[i].pidUt == pid){
+					pos = i;
+				}
+			}
+		}
+		int aux = i + 1;
+		
+		//ver ocupação da fila
+		for(int i = 0; i<5; i++){
+			if(Filas.geral[i].flagNaFila == 1){
+				contaClis++;
+			}
+		}
+
+		if(contaClis == 5){
+			for(int j = aux; j < 5; j++){
+				Filas.geral[j] = Filas.geral[j-1];
+			}
+
+			//se a fila está cheia, vai ser a última posição que fica livre
+			Filas.geral[4].flagNaFila = -1;
+		}
+		else if(contaClis > 1 && contaClis < 5){
+			int limpa = contaClis - 1; 
+
+			for(int j = aux; j <= limpa; j++){
+				Filas.geral[j] = Filas.geral[j-1];
+			}
+
+			//limpar a posição que deve ficar livre
+			Filas.geral[limpa].flagNaFila = -1;
+		}
+		
+		//se só houver um na fila, so é preciso tirar esse
+		else if(contaClis == 1){
+			Filas.geral[0].flagNaFila = -1;
+		}
+	}
+
+}
+
+
+
 //listar todos os clientes, atendidos e em fila
 void listaUtentes(utente_ptr array_ut, int numUt){
 
-	printf("\n______Existem %d utentes no total______\n\n", numUt);
+	printf("\n----Existem %d utentes no total----\n\n", numUt);
 
 	for(int i = 0; i< numUt; i++){
 		printf("\nNome Utente: [%s] - ID Utente: [%d] - Espec atribuida: [%s] - Prioridade: [%d] \n", array_ut[i].cliente.nome, array_ut[i].cliente.pidUt, array_ut[i].cliente.espec_atr, array_ut[i].cliente.prioridade_atr);
 		if (array_ut[i].cliente.flagEmConsulta == 0)
 			printf("O utente ainda se encontra na fila de espera.\n");
 		else if(array_ut[i].cliente.flagEmConsulta == 1)
-			printf("O utente encontra-se a ser atendido pelo especilialista: %s.\n", array_ut[i].cliente.medico_atr);
-		
+			printf("O utente encontra-se a ser atendido pelo especilialista: %s.\n", array_ut[i].cliente.medico_atr);	
 	}
-
 }
+
+
+
 
 //listar medicos
 void lista_med(med_ptr array_med, int numMed){
 
-	printf("\n_____Existem %d medicos no total_____\n", numMed);
+	printf("\n\n----Existem %d medicos no total----\n\n", numMed);
 
 	for(int i = 0; i< numMed; i++){
-		printf("Nome Medico: [%s] - ID Medico: [%d] - Especialidade: [%s]\n", array_med[i].medico_esp.nome, array_med[i].medico_esp.med_id, array_med[i].medico_esp.especialidade);
+		printf("\nNome Medico: [%s] - ID Medico: [%d] - Especialidade: [%s]\n", array_med[i].medico_esp.nome, array_med[i].medico_esp.med_id, array_med[i].medico_esp.especialidade);
 		if(array_med[i].medico_esp.flagEmConsulta == 0)
 			printf("O medico ainda nao esta em consulta com ninguem\n");
 		else if(array_med[i].medico_esp.flagEmConsulta == 1)
@@ -901,8 +1139,36 @@ void lista_med(med_ptr array_med, int numMed){
 	}
 }
 
+void lista_filas()
+{
+	int contaOf = 0, contaNeu = 0, contaGe = 0, contaEst = 0, contaOrt = 0;
 
+	printf("\n\n---Ocupacao das filas---\n");
 
+	while (Filas.oftalmologia[contaOf].flagNaFila != -1)
+	{
+		contaOf++;
+	}
+	while (Filas.neurologia[contaNeu].flagNaFila != -1)
+	{
+		contaNeu++;
+	}
+	while (Filas.geral[contaGe].flagNaFila != -1)
+	{
+		contaGe++;
+	}
+	while (Filas.estomatologia[contaEst].flagNaFila != -1)
+	{
+		contaEst++;
+	}
+	while (Filas.ortopedia[contaOrt].flagNaFila != -1)
+	{
+		contaOrt++;
+	}
+
+	printf("Oftalmologia: [%d] - Neurologia [%d] - Estomatologia [%d] - Ortopedia [%d] - Geral [%d]\n\n", contaOf, contaNeu, contaEst, contaOrt, contaGe);
+
+}
 
 //remover medicos 
 med_ptr remover_med(int *numMed, int pid){
@@ -924,7 +1190,7 @@ med_ptr remover_med(int *numMed, int pid){
 
 		med_ptr aux;
 		aux = realloc(array_med, sizeof(med)*(*numMed-1));
-		if (aux = NULL)
+		if (aux == NULL)
 		{
 			printf("[ERRO] Realocacao de memoria - func remover_ut\n");
 			free(aux);
@@ -944,6 +1210,198 @@ med_ptr remover_med(int *numMed, int pid){
 
 }
 
+
+void delutX (char nomeRemo[30], int *numUt){
+
+	char espec[30], nome_fifo_cli[30];
+	int pid, fd_cli_fifo, encontrou = 0;
+	user cli_dados;
+
+	//procurar cliente, saber o pid e a especialidade
+	for(int i = 0; i < *numUt; i++){
+		if(strcmp(array_ut[i].cliente.nome, nomeRemo) == 0){
+			if(array_ut[i].cliente.flagEmConsulta == 1){
+				printf("\n\n[AVISO] O cliente encontra-se em consulta!\n\n");
+				return;
+			}
+			strcpy(espec, array_ut[i].cliente.espec_atr);
+			pid = array_ut[i].cliente.pidUt;
+			encontrou = 1;
+		}
+	}
+
+	if(encontrou == 0){
+		printf("\n\n[AVISO] O cliente nao existe!\n\n");
+		return;
+	}
+
+	array_ut = remover_ut(numUt, pid);
+
+
+	if(strcmp(espec, "oftalmologia") == 0){
+		for (int i = 0; i < 5; i++)
+		{
+			if(Filas.oftalmologia[i].pidUt == pid){
+				Filas.oftalmologia[i].flagNaFila = -1;
+			}
+		}
+
+		arranja_filas(pid, espec);
+		
+		//avisar cliente
+		sprintf(nome_fifo_cli, UTENTE_FIFO, pid);
+		fd_cli_fifo = open(nome_fifo_cli, O_WRONLY);
+		if (fd_cli_fifo == -1)
+		{
+			printf("[ERRO] Abrir o fifo do cliente\n");
+			exit(2);
+		}
+		strcpy(cli_dados.mensagem, "DELEUT");
+		write(fd_cli_fifo, &cli_dados, sizeof(user));
+
+	}
+	else if(strcmp(espec, "neurologia") == 0){
+		for (int i = 0; i < 5; i++)
+		{
+			if(Filas.neurologia[i].pidUt == pid){
+				Filas.neurologia[i].flagNaFila = -1;
+			}
+		}
+
+		arranja_filas(pid, espec);
+		
+		//avisar cliente
+		sprintf(nome_fifo_cli, UTENTE_FIFO, pid);
+		fd_cli_fifo = open(nome_fifo_cli, O_WRONLY);
+		if (fd_cli_fifo == -1)
+		{
+			printf("[ERRO] Abrir o fifo do cliente\n");
+			exit(2);
+		}
+		strcpy(cli_dados.mensagem, "DELEUT");
+		write(fd_cli_fifo, &cli_dados, sizeof(user));
+
+	}
+	else if(strcmp(espec, "estomatologia") == 0){
+		for (int i = 0; i < 5; i++)
+		{
+			if(Filas.estomatologia[i].pidUt == pid){
+				Filas.estomatologia[i].flagNaFila = -1;
+			}
+		}
+
+		arranja_filas(pid, espec);
+		
+		//avisar cliente
+		sprintf(nome_fifo_cli, UTENTE_FIFO, pid);
+		fd_cli_fifo = open(nome_fifo_cli, O_WRONLY);
+		if (fd_cli_fifo == -1)
+		{
+			printf("[ERRO] Abrir o fifo do cliente\n");
+			exit(2);
+		}
+		strcpy(cli_dados.mensagem, "DELEUT");
+		write(fd_cli_fifo, &cli_dados, sizeof(user));
+
+	}
+	else if(strcmp(espec, "ortopedia") == 0){
+		for (int i = 0; i < 5; i++)
+		{
+			if(Filas.ortopedia[i].pidUt == pid){
+				Filas.ortopedia[i].flagNaFila = -1;
+			}
+		}
+
+		arranja_filas(pid, espec);
+		
+		//avisar cliente
+		sprintf(nome_fifo_cli, UTENTE_FIFO, pid);
+		fd_cli_fifo = open(nome_fifo_cli, O_WRONLY);
+		if (fd_cli_fifo == -1)
+		{
+			printf("[ERRO] Abrir o fifo do cliente\n");
+			exit(2);
+		}
+		strcpy(cli_dados.mensagem, "DELEUT");
+		write(fd_cli_fifo, &cli_dados, sizeof(user));
+
+	}
+	else if(strcmp(espec, "geral") == 0){
+		for (int i = 0; i < 5; i++)
+		{
+			if(Filas.geral[i].pidUt == pid){
+				Filas.geral[i].flagNaFila = -1;
+			}
+		}
+
+		arranja_filas(pid, espec);
+		
+		//avisar cliente
+		sprintf(nome_fifo_cli, UTENTE_FIFO, pid);
+		fd_cli_fifo = open(nome_fifo_cli, O_WRONLY);
+		if (fd_cli_fifo == -1)
+		{
+			printf("[ERRO] Abrir o fifo do cliente\n");
+			exit(2);
+		}
+		strcpy(cli_dados.mensagem, "DELEUT");
+		write(fd_cli_fifo, &cli_dados, sizeof(user));
+
+	}
+}
+
+
+void delespX (char nomeRemo[30], int *numMed){
+	char  nome_fifo_med[30];
+	int pid, fd_med_fifo, encontrou = 0;
+	medico med_dados;
+
+		//procurar cliente, saber o pid e a especialidade
+	for(int i = 0; i < *numMed; i++){
+		if(strcmp(array_med[i].medico_esp.nome, nomeRemo) == 0){
+			if(array_med[i].medico_esp.flagEmConsulta == 1){
+				printf("\n\n[AVISO] O especialistas encontra-se em consulta!\n\n");
+				return;
+			}
+			pid = array_med[i].medico_esp.med_id;
+			encontrou = 1;
+		}
+	}
+
+	if (encontrou == 0)
+	{
+		printf("\n\n[AVISO] O medico nao existe!\n\n");
+		return;
+	}
+
+	array_med = remover_med(numMed, pid);
+
+	//avisar medico
+	sprintf(nome_fifo_med, MEDICO_FIFO, pid);
+	fd_med_fifo = open(nome_fifo_med, O_WRONLY);
+	if (fd_med_fifo == -1)
+	{
+		printf("[ERRO] Abrir o fifo do cliente\n");
+		exit(2);
+	}
+	strcpy(med_dados.mensagem, "DELESP");
+	write(fd_med_fifo, &med_dados, sizeof(medico));
+}
+
+
+void *threadFreqN(void *dados){
+
+	freqN *freqData = (freqN*) dados;
+
+
+	while (freqData->flagContinua)
+	{
+		sleep(freqData->segundos);
+		lista_filas();	
+	}
+
+	pthread_exit(NULL);
+}
 
 
 void *threadClassCli(void *dados)
@@ -967,7 +1425,7 @@ void *threadClassCli(void *dados)
 
 	res = fork();
 	if (res == 0)
-	{ //filho
+	{ 
 
 		//stout do classificador
 		close(1);
@@ -1006,7 +1464,6 @@ void *threadClassCli(void *dados)
 		res_size = read(fd_balc_fifo, &cli_dados, sizeof(user));
 		if (res_size != sizeof(user))
 		{
-			printf("[ERRO] Ler do fifo balcao - utente\n");
 			exit(3);
 		}
 		if(!balcUtData->flagContinua)
@@ -1014,13 +1471,11 @@ void *threadClassCli(void *dados)
 
 		pthread_mutex_lock(balcUtData->trinco);
 
-			//se o cliente ainda não está registado, registar e falar com o classificador
+		//se o cliente ainda não está registado, registar e falar com o classificador
 		if (cli_dados.flagRegistado == 0)	
 		{
-			//verificar MAXCLI e guardar cliente no array
 			if ((*balcUtData->numUt) < balcUtData->maxUt)
 			{				
-					//fazer fifo cliente
 				sprintf(nome_fifo_cli, UTENTE_FIFO, cli_dados.pidUt);
 				fd_cli_fifo = open(nome_fifo_cli, O_WRONLY);
 				if (fd_cli_fifo == -1)
@@ -1072,7 +1527,7 @@ void *threadClassCli(void *dados)
 					auxUtente = add_ut(balcUtData->numUt, &cli_dados);
 					array_ut = auxUtente;
 					
-					printf("\nO cliente %s foi registado.\n", cli_dados.nome);
+					printf("\n[AVISO] O cliente %s foi registado na especialidade %s.\n\n", cli_dados.nome, cli_dados.espec_atr);
 				}			
 				
 				//responder ao cliente
@@ -1094,18 +1549,14 @@ void *threadClassCli(void *dados)
 		}
 		else{
 			//aqui deve ser para ler os comandos do cliente
-			if(strcmp(cli_dados.mensagem, "ADEUS")){
-				int aux = cli_dados.pidUt;
-
-				for(int i = 0; i < *balcUtData->numUt; i++){
-					if(array_ut[i].cliente.pidUt == aux){
-						array_ut[i].cliente.flagEmConsulta = 0;
-					}
-				}
+			if(strcmp(cli_dados.mensagem, "ADEUS") == 0){
+				int auxPidUt = cli_dados.pidUt;
+				array_ut = remover_ut(balcUtData->numUt, auxPidUt);				
 			}
-			else if(strcmp(cli_dados.mensagem, "SAIR")){
+			else if(strcmp(cli_dados.mensagem, "SAIR") == 0){
 				int aux = cli_dados.pidUt;
-				array_med = remover_med(balcUtData->numUt, aux);
+				array_ut = remover_ut(balcUtData->numUt, aux);
+				arranja_filas(cli_dados.pidUt, cli_dados.espec_atr);
 			}
 		}
 		
@@ -1117,12 +1568,12 @@ void *threadClassCli(void *dados)
 
 	wait(&estadoFilho);
 
-	printf("FUICLIENTE\n");
 	pthread_exit(NULL);
 }
 
 
-void *threadMedico(void *dados)		//med_ptr -> utente_ptr
+
+void *threadMedico(void *dados)		
 {
 	int fd_balc_fifo2, fd_med_fifo;
 	int res_size;
@@ -1148,7 +1599,6 @@ void *threadMedico(void *dados)		//med_ptr -> utente_ptr
 		res_size = read (fd_balc_fifo2, &med_dados, sizeof(medico));
 		if (res_size != sizeof(medico))
 		{
-			printf("[ERRO] Ler do fifo balcao - medico\n");
 			exit(3);
 		}
 		
@@ -1176,7 +1626,7 @@ void *threadMedico(void *dados)		//med_ptr -> utente_ptr
 				auxMed = add_med(balcMedData->numMed, &med_dados);
 				array_med = auxMed;
 
-				printf("\nMedico %s, espe %s\n", med_dados.nome, med_dados.especialidade);
+				printf("\n\n[AVISO] Medico %s foi registado na especialidade %s.\n\n", med_dados.nome, med_dados.especialidade);
 				strcpy(med_dados.mensagem, "BALC_OK");
 				write(fd_med_fifo, &med_dados, sizeof(medico));
 
@@ -1198,7 +1648,7 @@ void *threadMedico(void *dados)		//med_ptr -> utente_ptr
 		}
 		else{
 			//aqui deve ser para ler os comandos do medico
-			if(strcmp(med_dados.mensagem, "ADEUS")){
+			if(strcmp(med_dados.mensagem, "ADEUS") == 0){
 				int aux = med_dados.med_id;
 
 				for(int i = 0; i < *balcMedData->numMed; i++){
@@ -1207,7 +1657,7 @@ void *threadMedico(void *dados)		//med_ptr -> utente_ptr
 					}
 				}
 			}
-			else if(strcmp(med_dados.mensagem, "SAIR")){
+			else if(strcmp(med_dados.mensagem, "SAIR") == 0){
 				int aux = med_dados.med_id;
 				array_med = remover_med(balcMedData->numMed, aux);
 			}
@@ -1216,10 +1666,10 @@ void *threadMedico(void *dados)		//med_ptr -> utente_ptr
 		pthread_mutex_unlock(balcMedData->trinco);
 	}
 
-	printf("FUIMEDICO\n");
 	pthread_exit(NULL);
 
 }
+
 
 //procurar medicos
 void *threadProcMed(void *dados)		
@@ -1230,7 +1680,6 @@ void *threadProcMed(void *dados)
 	procuraMed *procuraMedData = (procuraMed *) dados;
 	medico med_dados;
 
-	sleep(7);
 
 	while (procuraMedData->flagContinua)
 	{
@@ -1258,6 +1707,7 @@ void *threadProcMed(void *dados)
 					write(fd_med_fifo, &med_dados, sizeof(medico));
 
 					array_med[i].medico_esp.flagEmConsulta = 1;
+					array_med[i].medico_esp.cliente_atual = Filas.oftalmologia[0];
 					auxPid = Filas.oftalmologia[0].pidUt;
 					
 					//encontrar o pid do cliente da fila mas no array geral para meter a flag a 1
@@ -1266,34 +1716,31 @@ void *threadProcMed(void *dados)
 						if (array_ut[j].cliente.pidUt == auxPid)
 						{
 							array_ut[j].cliente.flagEmConsulta = 1;
+							array_ut[j].cliente.flagNaFila = -1;
 							strcpy(array_ut[j].cliente.medico_atr, array_med[i].medico_esp.nome);
 							break;
 						}
 					}
-
-					//AQUI TENHO DE REORDENAR O ARRAY DAS FILAS, TIRANDO O PRIMEIRO QUE JÁ ESTÁ A SER ATENDIDO
-
+					arranja_filas(auxPid, "oftalmologia");
+				
 				}
-				else if(strcmp(array_med[i].medico_esp.especialidade, "neurologia") == 0){
+				else if(strcmp(array_med[i].medico_esp.especialidade, "neurologia") == 0 && Filas.neurologia[0].flagNaFila != -1){
 					printf("ok\n");
 				}
-				else if(strcmp(array_med[i].medico_esp.especialidade, "estomatologia") == 0){
+				else if(strcmp(array_med[i].medico_esp.especialidade, "estomatologia") == 0 && Filas.estomatologia[0].flagNaFila != -1){
 					printf("ok\n");
 				}
-				else if(strcmp(array_med[i].medico_esp.especialidade, "ortopedia") == 0){
+				else if(strcmp(array_med[i].medico_esp.especialidade, "ortopedia") == 0 && Filas.ortopedia[0].flagNaFila != -1){
 					printf("ok\n");
 				}
-				else if(strcmp(array_med[i].medico_esp.especialidade, "geral") == 0){
+				else if(strcmp(array_med[i].medico_esp.especialidade, "geral") == 0 && Filas.geral[0].flagNaFila != -1){
 					printf("ok\n");
 				}
 			}
 			pthread_mutex_unlock(procuraMedData->trinco);	
 		}
 	}
-	
-
 	pthread_exit(NULL);
-
 }
 
 
@@ -1304,10 +1751,10 @@ int main(int argc, char *argv[], char *envp[])
 	int res_size, flag_fimClass = 0;
 	int fd_balc_fifo, fd_balc_fifo2;
 	char comando[30], sendExit = 'E';
-
+	char *comAux, *nomeRemo, *auxNomeRemo;
 	char *maxClientes, *maxMedicos;
 	int max_clientes, max_medicos;
-	int numUt = 0, numMed = 0, indice;
+	int numUt = 0, numMed = 0, indice, primeiraVez = 0;;
 
 
 	balcUt balcUtData;
@@ -1316,23 +1763,16 @@ int main(int argc, char *argv[], char *envp[])
 
 	procuraMed procuraMedData;
 
+	freqN freqData;
+
 	pthread_t thread_classCli;
 	pthread_t thread_med;
 	pthread_t thread_procMed;
+	pthread_t thread_freqN;
 	pthread_mutex_t trinco;
 
-	//criar fifo balcao-cliente e balcao-medico
-	if (access(BALCAO_FIFO, F_OK) != 0)
-	{
-		mkfifo(BALCAO_FIFO, 0600);
-	}
-	if (access(BALCAO_FIFO2, F_OK) != 0)
-	{
-		mkfifo(BALCAO_FIFO2, 0600);
-	}
 
-
-	//----Tratar Variáveis Ambiente-------
+	//----Tratar Variáveis Ambiente------
 
 	maxClientes = getenv("MAXCLIENTES");
 	if (maxClientes == NULL)
@@ -1354,6 +1794,16 @@ int main(int argc, char *argv[], char *envp[])
 	else
 	{
 		max_medicos = atoi(maxMedicos);
+	}
+
+	//criar fifo balcao-cliente e balcao-medico
+	if (access(BALCAO_FIFO, F_OK) != 0)
+	{
+		mkfifo(BALCAO_FIFO, 0600);
+	}
+	if (access(BALCAO_FIFO2, F_OK) != 0)
+	{
+		mkfifo(BALCAO_FIFO2, 0600);
 	}
 
 		//abrir fifo do balcao-cliente
@@ -1403,6 +1853,9 @@ int main(int argc, char *argv[], char *envp[])
 	procuraMedData.numMed = &numMed;
 	procuraMedData.numUt = &numUt;
 
+	freqData.segundos = 5;
+	freqData.flagContinua = 1;
+	freqData.trinco = &trinco;
 
 	//thread para ouvir cliente
 	pthread_create(&thread_classCli, NULL, threadClassCli, (void *) &balcUtData);
@@ -1412,6 +1865,9 @@ int main(int argc, char *argv[], char *envp[])
 
 	//thread para procurar medico livre
 	pthread_create(&thread_procMed, NULL, threadProcMed, (void*) &procuraMedData);
+
+	//chamar thread do freq
+	pthread_create(&thread_freqN, NULL, threadFreqN, (void*) &freqData);
 
 
 	while (1)
@@ -1437,12 +1893,16 @@ int main(int argc, char *argv[], char *envp[])
 			procuraMedData.flagContinua = 0;
 			pthread_mutex_unlock(procuraMedData.trinco);
 
+			//parar thread do freq
+			pthread_mutex_lock(freqData.trinco);
+			freqData.flagContinua = 0;
+			pthread_mutex_unlock(freqData.trinco);
+
 			//desbloquear read
 			write(fd_balc_fifo, &(sendExit), sizeof(char));
 			write(fd_balc_fifo2, &(sendExit), sizeof(char));
 
 			encerra_todos(numMed, numUt);
-
 			
 			break;
 		}
@@ -1455,7 +1915,28 @@ int main(int argc, char *argv[], char *envp[])
 			lista_med(array_med, numMed);
 		}
 		else{
-			printf("Comando nao existe!\n");
+			comAux = strtok_r(comando, " ", &auxNomeRemo);
+			nomeRemo = auxNomeRemo;
+			nomeRemo[strcspn(nomeRemo, "\n")] = 0;
+
+			if(strcmp(comAux, "delut") == 0){
+				delutX(nomeRemo, &numUt);
+			}
+			else if (strcmp(comAux, "delesp") == 0)
+			{
+				delespX(nomeRemo, &numMed);	
+			}
+			else if(strcmp(comAux, "freq") == 0){
+				int segundos = atoi(nomeRemo);
+
+				pthread_mutex_lock(freqData.trinco);
+				freqData.segundos = segundos;
+				pthread_mutex_unlock(freqData.trinco);
+			}
+			else{
+				printf("O comando nao existe!\n");
+			}
+			
 		}
 	}
 
@@ -1465,6 +1946,7 @@ int main(int argc, char *argv[], char *envp[])
 	pthread_join(thread_classCli, NULL);	
 	pthread_join(thread_med, NULL);
 	pthread_join(thread_procMed, NULL);
+	pthread_join(thread_freqN, NULL);
 
 	pthread_mutex_destroy(&trinco);
 
